@@ -271,9 +271,10 @@ func fetchMatchDetails(client *fotmob.Client, matchID int) tea.Cmd {
 	}
 }
 
-// pollMatchDetails polls match details every 60 seconds for live updates.
+// pollMatchDetails polls match details every 90 seconds for live updates.
+// Conservative interval to avoid rate limiting (90 seconds = 1.5 minutes).
 func pollMatchDetails(client *fotmob.Client, parser *fotmob.LiveUpdateParser, matchID int, lastEvents []api.MatchEvent) tea.Cmd {
-	return tea.Tick(60*time.Second, func(t time.Time) tea.Msg {
+	return tea.Tick(90*time.Second, func(t time.Time) tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
