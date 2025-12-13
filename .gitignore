@@ -1,2 +1,5 @@
 .DS_Store
 golazo
+test_api.go
+test_api_setup.sh
+test_api.go
