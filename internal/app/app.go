@@ -7,6 +7,7 @@ import (
 
 	"github.com/0xjuanma/golazo/internal/api"
 	"github.com/0xjuanma/golazo/internal/data"
+	"github.com/0xjuanma/golazo/internal/footballdata"
 	"github.com/0xjuanma/golazo/internal/fotmob"
 	"github.com/0xjuanma/golazo/internal/ui"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -18,22 +19,24 @@ type view int
 const (
 	viewMain view = iota
 	viewLiveMatches
+	viewStats
 )
 
 type model struct {
-	width        int
-	height       int
-	currentView  view
-	matches      []ui.MatchDisplay
-	selected     int
-	matchDetails *api.MatchDetails
-	liveUpdates  []string
-	spinner      spinner.Model
-	loading      bool
-	fotmobClient *fotmob.Client
-	parser       *fotmob.LiveUpdateParser
-	lastEvents   []api.MatchEvent
-	polling      bool
+	width              int
+	height             int
+	currentView        view
+	matches            []ui.MatchDisplay
+	selected           int
+	matchDetails       *api.MatchDetails
+	liveUpdates        []string
+	spinner            spinner.Model
+	loading            bool
+	fotmobClient       *fotmob.Client
+	footballDataClient *footballdata.Client
+	parser             *fotmob.LiveUpdateParser
+	lastEvents         []api.MatchEvent
+	polling            bool
 }
 
 // NewModel creates a new application model with default values.
@@ -42,14 +45,21 @@ func NewModel() model {
 	s.Spinner = spinner.Dot
 	s.Style = ui.SpinnerStyle()
 
+	// Initialize Football-Data.org client if API key is available
+	var footballDataClient *footballdata.Client
+	if apiKey, err := data.GetFootballDataAPIKey(); err == nil {
+		footballDataClient = footballdata.NewClient(apiKey)
+	}
+
 	return model{
-		currentView:  viewMain,
-		selected:     0,
-		spinner:      s,
-		liveUpdates:  []string{},
-		fotmobClient: fotmob.NewClient(),
-		parser:       fotmob.NewLiveUpdateParser(),
-		lastEvents:   []api.MatchEvent{},
+		currentView:        viewMain,
+		selected:           0,
+		spinner:            s,
+		liveUpdates:        []string{},
+		fotmobClient:       fotmob.NewClient(),
+		footballDataClient: footballDataClient,
+		parser:             fotmob.NewLiveUpdateParser(),
+		lastEvents:         []api.MatchEvent{},
 	}
 }
 
@@ -120,6 +130,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.lastEvents = []api.MatchEvent{}
 				m.loading = false
 				m.polling = false
+				m.matches = []ui.MatchDisplay{}
 				return m, nil
 			}
 		}
@@ -130,6 +141,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleMainViewKeys(msg)
 		case viewLiveMatches:
 			return m.handleLiveMatchesKeys(msg)
+		case viewStats:
+			return m.handleStatsViewKeys(msg)
 		}
 	case liveMatchesMsg:
 		// Convert to display format
@@ -147,6 +160,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Load details for first match if available
 		if len(m.matches) > 0 {
 			return m.loadMatchDetails(m.matches[0].ID)
+		}
+
+		return m, nil
+	case finishedMatchesMsg:
+		// Convert to display format
+		displayMatches := make([]ui.MatchDisplay, 0, len(msg.matches))
+		for _, match := range msg.matches {
+			displayMatches = append(displayMatches, ui.MatchDisplay{
+				Match: match,
+			})
+		}
+
+		m.matches = displayMatches
+		m.selected = 0
+		m.loading = false
+
+		// Load details for first match if available
+		if len(m.matches) > 0 && m.footballDataClient != nil {
+			return m.loadStatsMatchDetails(m.matches[0].ID)
 		}
 
 		return m, nil
@@ -168,13 +200,23 @@ func (m model) handleMainViewKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case "enter":
 		if m.selected == 0 {
-			// Stats - do nothing, stay on main view
-			return m, nil
+			// Stats - navigate to stats view
+			if m.footballDataClient == nil {
+				// No API key configured, show empty state
+				m.currentView = viewStats
+				m.matches = []ui.MatchDisplay{}
+				m.selected = 0
+				m.matchDetails = nil
+				return m, nil
+			}
+			m.currentView = viewStats
+			m.loading = true
+			return m, tea.Batch(m.spinner.Tick, fetchFinishedMatches(m.footballDataClient))
 		} else if m.selected == 1 {
 			// Live Matches - fetch live matches from API
 			m.currentView = viewLiveMatches
 			m.loading = true
-			return m, fetchLiveMatches(m.fotmobClient)
+			return m, tea.Batch(m.spinner.Tick, fetchLiveMatches(m.fotmobClient))
 		}
 		return m, nil
 	}
@@ -205,6 +247,30 @@ func (m model) handleLiveMatchesKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m model) handleStatsViewKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "j", "down":
+		if m.selected < len(m.matches)-1 {
+			m.selected++
+			// Load details for newly selected match
+			if m.selected < len(m.matches) && m.footballDataClient != nil {
+				return m.loadStatsMatchDetails(m.matches[m.selected].ID)
+			}
+		}
+		return m, nil
+	case "k", "up":
+		if m.selected > 0 {
+			m.selected--
+			// Load details for newly selected match
+			if m.selected >= 0 && m.selected < len(m.matches) && m.footballDataClient != nil {
+				return m.loadStatsMatchDetails(m.matches[m.selected].ID)
+			}
+		}
+		return m, nil
+	}
+	return m, nil
+}
+
 // loadMatchDetails loads match details and starts live updates.
 func (m model) loadMatchDetails(matchID int) (tea.Model, tea.Cmd) {
 	m.liveUpdates = []string{}
@@ -213,12 +279,20 @@ func (m model) loadMatchDetails(matchID int) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(m.spinner.Tick, fetchMatchDetails(m.fotmobClient, matchID))
 }
 
+// loadStatsMatchDetails loads match details for stats view.
+func (m model) loadStatsMatchDetails(matchID int) (tea.Model, tea.Cmd) {
+	m.loading = true
+	return m, tea.Batch(m.spinner.Tick, fetchStatsMatchDetails(m.footballDataClient, matchID))
+}
+
 func (m model) View() string {
 	switch m.currentView {
 	case viewMain:
 		return ui.RenderMainMenu(m.width, m.height, m.selected)
 	case viewLiveMatches:
 		return ui.RenderMultiPanelView(m.width, m.height, m.matches, m.selected, m.matchDetails, m.liveUpdates, m.spinner, m.loading)
+	case viewStats:
+		return ui.RenderStatsView(m.width, m.height, m.matches, m.selected, m.matchDetails)
 	default:
 		return ui.RenderMainMenu(m.width, m.height, m.selected)
 	}
@@ -288,4 +362,41 @@ func pollMatchDetails(client *fotmob.Client, parser *fotmob.LiveUpdateParser, ma
 		// Return match details - new events will be detected in the Update handler
 		return matchDetailsMsg{details: details}
 	})
+}
+
+// finishedMatchesMsg is a message containing finished matches.
+type finishedMatchesMsg struct {
+	matches []api.Match
+}
+
+// fetchFinishedMatches fetches finished matches from the Football-Data.org API.
+func fetchFinishedMatches(client *footballdata.Client) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		// Fetch matches from last 7 days
+		matches, err := client.RecentFinishedMatches(ctx, 7)
+		if err != nil {
+			// Return empty matches on error - will show empty state
+			return finishedMatchesMsg{matches: []api.Match{}}
+		}
+
+		return finishedMatchesMsg{matches: matches}
+	}
+}
+
+// fetchStatsMatchDetails fetches match details from the Football-Data.org API.
+func fetchStatsMatchDetails(client *footballdata.Client, matchID int) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		details, err := client.MatchDetails(ctx, matchID)
+		if err != nil {
+			return matchDetailsMsg{details: nil}
+		}
+
+		return matchDetailsMsg{details: details}
+	}
 }
