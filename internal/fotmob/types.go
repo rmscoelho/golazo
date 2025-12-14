@@ -8,8 +8,9 @@ import (
 )
 
 // fotmobMatch represents a match in FotMob's API format
+// Note: FotMob uses string IDs in JSON, but we convert them to ints
 type fotmobMatch struct {
-	ID     int    `json:"id"`
+	ID     string `json:"id"` // FotMob returns string IDs
 	Round  string `json:"round"`
 	Home   team   `json:"home"`
 	Away   team   `json:"away"`
@@ -18,7 +19,7 @@ type fotmobMatch struct {
 }
 
 type team struct {
-	ID        int    `json:"id"`
+	ID        string `json:"id"` // FotMob returns string IDs
 	Name      string `json:"name"`
 	ShortName string `json:"shortName"`
 }
@@ -31,10 +32,10 @@ type league struct {
 }
 
 type status struct {
-	UTCTime   string    `json:"utcTime"`
-	Started   bool      `json:"started"`
-	Finished  bool      `json:"finished"`
-	Cancelled bool      `json:"cancelled"`
+	UTCTime   string    `json:"utcTime"`   // Can be null/empty
+	Started   *bool     `json:"started"`   // Can be null
+	Finished  *bool     `json:"finished"`  // Can be null
+	Cancelled *bool     `json:"cancelled"` // Can be null
 	LiveTime  *liveTime `json:"liveTime,omitempty"`
 	Score     *score    `json:"score,omitempty"`
 }
@@ -50,8 +51,13 @@ type score struct {
 
 // toAPIMatch converts a fotmobMatch to api.Match
 func (m fotmobMatch) toAPIMatch() api.Match {
+	// Convert string IDs to ints
+	matchID := parseInt(m.ID)
+	homeID := parseInt(m.Home.ID)
+	awayID := parseInt(m.Away.ID)
+
 	match := api.Match{
-		ID: m.ID,
+		ID: matchID,
 		League: api.League{
 			ID:          m.League.ID,
 			Name:        m.League.Name,
@@ -59,12 +65,12 @@ func (m fotmobMatch) toAPIMatch() api.Match {
 			CountryCode: m.League.CountryCode,
 		},
 		HomeTeam: api.Team{
-			ID:        m.Home.ID,
+			ID:        homeID,
 			Name:      m.Home.Name,
 			ShortName: m.Home.ShortName,
 		},
 		AwayTeam: api.Team{
-			ID:        m.Away.ID,
+			ID:        awayID,
 			Name:      m.Away.Name,
 			ShortName: m.Away.ShortName,
 		},
@@ -85,12 +91,12 @@ func (m fotmobMatch) toAPIMatch() api.Match {
 		}
 	}
 
-	// Determine status
-	if m.Status.Cancelled {
+	// Determine status - handle null boolean values
+	if m.Status.Cancelled != nil && *m.Status.Cancelled {
 		match.Status = api.MatchStatusCancelled
-	} else if m.Status.Finished {
+	} else if m.Status.Finished != nil && *m.Status.Finished {
 		match.Status = api.MatchStatusFinished
-	} else if m.Status.Started {
+	} else if m.Status.Started != nil && *m.Status.Started {
 		match.Status = api.MatchStatusLive
 		if m.Status.LiveTime != nil {
 			match.LiveTime = &m.Status.LiveTime.Short
@@ -110,7 +116,7 @@ func (m fotmobMatch) toAPIMatch() api.Match {
 
 // fotmobMatchDetails represents detailed match information from FotMob
 type fotmobMatchDetails struct {
-	ID     int     `json:"id"`
+	ID     string  `json:"id"` // FotMob returns string IDs
 	Round  string  `json:"round"`
 	Home   team    `json:"home"`
 	Away   team    `json:"away"`
@@ -165,19 +171,24 @@ func (m fotmobMatchDetails) toAPIMatchDetails() *api.MatchDetails {
 		}
 
 		// Set team based on teamId - match with home or away team
-		if e.TeamID == m.Home.ID {
+		// Convert team IDs to int for comparison
+		homeIDInt := parseInt(m.Home.ID)
+		awayIDInt := parseInt(m.Away.ID)
+
+		switch e.TeamID {
+		case homeIDInt:
 			event.Team = api.Team{
-				ID:        m.Home.ID,
+				ID:        homeIDInt,
 				Name:      m.Home.Name,
 				ShortName: m.Home.ShortName,
 			}
-		} else if e.TeamID == m.Away.ID {
+		case awayIDInt:
 			event.Team = api.Team{
-				ID:        m.Away.ID,
+				ID:        awayIDInt,
 				Name:      m.Away.Name,
 				ShortName: m.Away.ShortName,
 			}
-		} else {
+		default:
 			// Fallback if team ID doesn't match
 			event.Team = api.Team{
 				ID: e.TeamID,
@@ -243,13 +254,14 @@ func parseTime(timeStr string) *time.Time {
 }
 
 // Helper function to parse int from string
-func parseInt(s string) *int {
+// Returns 0 if parsing fails (for required fields)
+func parseInt(s string) int {
 	if s == "" {
-		return nil
+		return 0
 	}
 	val, err := strconv.Atoi(s)
 	if err != nil {
-		return nil
+		return 0
 	}
-	return &val
+	return val
 }

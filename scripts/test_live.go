@@ -151,7 +151,7 @@ func testLeagueDirectly(leagueID int, date time.Time) {
 			dateStr := date.Format("2006-01-02")
 			todayMatches := 0
 			liveMatches := 0
-			
+
 			// Check ALL matches for today and live status (not just first 20)
 			for i, m := range allMatches {
 				if match, ok := m.(map[string]interface{}); ok {

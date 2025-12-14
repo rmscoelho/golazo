@@ -59,7 +59,7 @@ func NewClient() *Client {
 func (c *Client) MatchesByDate(ctx context.Context, date time.Time) ([]api.Match, error) {
 	// Normalize date to UTC for consistent comparison
 	requestDateStr := date.UTC().Format("2006-01-02")
-	
+
 	// Use a mutex to protect the shared slice
 	var mu sync.Mutex
 	allMatches := make([]api.Match, 0)
