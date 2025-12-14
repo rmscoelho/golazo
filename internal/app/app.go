@@ -103,7 +103,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		// List sizes will be updated in View() method
+		// List sizes will be updated in View() method when rendering
 		return m, nil
 	case spinner.TickMsg:
 		if m.loading || m.mainViewLoading {
@@ -232,7 +232,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Update list with items
-		m.liveMatchesList.SetItems(ui.ToMatchListItems(displayMatches))
+		items := ui.ToMatchListItems(displayMatches)
+		m.liveMatchesList.SetItems(items)
+		
+		// Set list size based on current window dimensions
+		if m.width > 0 && m.height > 0 {
+			leftWidth := m.width * 35 / 100
+			if leftWidth < 25 {
+				leftWidth = 25
+			}
+			// Approximate frame size (border + padding)
+			frameWidth := 4
+			frameHeight := 6
+			titleHeight := 3
+			availableWidth := leftWidth - frameWidth
+			availableHeight := m.height - frameHeight - titleHeight
+			if availableWidth > 0 && availableHeight > 0 {
+				m.liveMatchesList.SetSize(availableWidth, availableHeight)
+			}
+		}
+		
 		if len(displayMatches) > 0 {
 			m.liveMatchesList.Select(0)
 		}
