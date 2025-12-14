@@ -12,4 +12,3 @@ var (
 	highlightColor = lipgloss.Color("51")  // Cyan highlight (same as accent)
 	borderColor    = lipgloss.Color("51")  // Cyan borders (same as accent)
 )
-
