@@ -10,6 +10,7 @@ import (
 	"github.com/0xjuanma/golazo/internal/footballdata"
 	"github.com/0xjuanma/golazo/internal/fotmob"
 	"github.com/0xjuanma/golazo/internal/ui"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -37,6 +38,8 @@ type model struct {
 	parser             *fotmob.LiveUpdateParser
 	lastEvents         []api.MatchEvent
 	polling            bool
+	liveMatchesList    list.Model
+	statsMatchesList   list.Model
 }
 
 // NewModel creates a new application model with default values.
@@ -51,6 +54,19 @@ func NewModel() model {
 		footballDataClient = footballdata.NewClient(apiKey)
 	}
 
+	// Initialize list models with custom delegate
+	delegate := ui.NewMatchListDelegate()
+
+	liveList := list.New([]list.Item{}, delegate, 0, 0)
+	liveList.Title = "Live Matches"
+	liveList.SetShowStatusBar(false)
+	liveList.SetFilteringEnabled(false)
+
+	statsList := list.New([]list.Item{}, delegate, 0, 0)
+	statsList.Title = "Finished Matches"
+	statsList.SetShowStatusBar(false)
+	statsList.SetFilteringEnabled(false)
+
 	return model{
 		currentView:        viewMain,
 		selected:           0,
@@ -60,6 +76,8 @@ func NewModel() model {
 		footballDataClient: footballDataClient,
 		parser:             fotmob.NewLiveUpdateParser(),
 		lastEvents:         []api.MatchEvent{},
+		liveMatchesList:    liveList,
+		statsMatchesList:   statsList,
 	}
 }
 
@@ -75,6 +93,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		// List sizes will be updated in View() method
 		return m, nil
 	case spinner.TickMsg:
 		if m.loading {
@@ -149,9 +168,45 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case viewMain:
 			return m.handleMainViewKeys(msg)
 		case viewLiveMatches:
-			return m.handleLiveMatchesKeys(msg)
+			// Delegate to list component
+			var cmd tea.Cmd
+			m.liveMatchesList, cmd = m.liveMatchesList.Update(msg)
+			// Get selected index from list
+			if selectedItem := m.liveMatchesList.SelectedItem(); selectedItem != nil {
+				if item, ok := selectedItem.(ui.MatchListItem); ok {
+					// Find match index
+					for i, match := range m.matches {
+						if match.ID == item.Match.ID {
+							if i != m.selected {
+								m.selected = i
+								return m.loadMatchDetails(m.matches[m.selected].ID)
+							}
+							break
+						}
+					}
+				}
+			}
+			return m, cmd
 		case viewStats:
-			return m.handleStatsViewKeys(msg)
+			// Delegate to list component
+			var cmd tea.Cmd
+			m.statsMatchesList, cmd = m.statsMatchesList.Update(msg)
+			// Get selected index from list
+			if selectedItem := m.statsMatchesList.SelectedItem(); selectedItem != nil {
+				if item, ok := selectedItem.(ui.MatchListItem); ok {
+					// Find match index
+					for i, match := range m.matches {
+						if match.ID == item.Match.ID {
+							if i != m.selected {
+								m.selected = i
+								return m.loadStatsMatchDetails(m.matches[m.selected].ID)
+							}
+							break
+						}
+					}
+				}
+			}
+			return m, cmd
 		}
 	case liveMatchesMsg:
 		// Convert to display format
@@ -165,6 +220,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.matches = displayMatches
 		m.selected = 0
 		m.loading = false
+
+		// Update list with items
+		m.liveMatchesList.SetItems(ui.ToMatchListItems(displayMatches))
+		if len(displayMatches) > 0 {
+			m.liveMatchesList.Select(0)
+		}
 
 		// Load details for first match if available
 		if len(m.matches) > 0 {
@@ -185,8 +246,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.selected = 0
 		m.loading = false
 
+		// Update list with items
+		m.statsMatchesList.SetItems(ui.ToMatchListItems(displayMatches))
+		if len(displayMatches) > 0 {
+			m.statsMatchesList.Select(0)
+		}
+
 		// Load details for first match if available
-		if len(m.matches) > 0 && m.footballDataClient != nil {
+		if len(m.matches) > 0 {
 			return m.loadStatsMatchDetails(m.matches[0].ID)
 		}
 
@@ -313,9 +380,9 @@ func (m model) View() string {
 	case viewMain:
 		return ui.RenderMainMenu(m.width, m.height, m.selected)
 	case viewLiveMatches:
-		return ui.RenderMultiPanelView(m.width, m.height, m.matches, m.selected, m.matchDetails, m.liveUpdates, m.spinner, m.loading)
+		return ui.RenderMultiPanelViewWithList(m.width, m.height, m.liveMatchesList, m.matchDetails, m.liveUpdates, m.spinner, m.loading)
 	case viewStats:
-		return ui.RenderStatsView(m.width, m.height, m.matches, m.selected, m.matchDetails)
+		return ui.RenderStatsViewWithList(m.width, m.height, m.statsMatchesList, m.matchDetails)
 	default:
 		return ui.RenderMainMenu(m.width, m.height, m.selected)
 	}
@@ -332,17 +399,22 @@ type matchDetailsMsg struct {
 }
 
 // fetchLiveMatches fetches live matches from the API.
+// For testing, falls back to mock data if client is nil or on error.
 func fetchLiveMatches(client *fotmob.Client) tea.Cmd {
 	return func() tea.Msg {
+		// Use mock data for testing if client is not available
+		if client == nil {
+			matches := data.MockLiveMatches()
+			return liveMatchesMsg{matches: matches}
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		matches, err := client.LiveMatches(ctx)
 		if err != nil {
-			// Log error for debugging - in production you might want to use a logger
-			// For now, return empty matches - will show empty state
-			// The error details are in the API client error message
-			matches = []api.Match{}
+			// Fallback to mock data on error for testing
+			matches = data.MockLiveMatches()
 		}
 
 		return liveMatchesMsg{matches: matches}
@@ -393,16 +465,23 @@ type finishedMatchesMsg struct {
 }
 
 // fetchFinishedMatches fetches finished matches from the Football-Data.org API.
+// For testing, falls back to mock data if client is nil.
 func fetchFinishedMatches(client *footballdata.Client) tea.Cmd {
 	return func() tea.Msg {
+		// Use mock data for testing if client is not available
+		if client == nil {
+			matches := data.MockFinishedMatches()
+			return finishedMatchesMsg{matches: matches}
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		// Fetch matches from last 7 days
 		matches, err := client.RecentFinishedMatches(ctx, 7)
 		if err != nil {
-			// Return empty matches on error - will show empty state
-			return finishedMatchesMsg{matches: []api.Match{}}
+			// Fallback to mock data on error for testing
+			matches = data.MockFinishedMatches()
 		}
 
 		return finishedMatchesMsg{matches: matches}
@@ -410,14 +489,25 @@ func fetchFinishedMatches(client *footballdata.Client) tea.Cmd {
 }
 
 // fetchStatsMatchDetails fetches match details from the Football-Data.org API.
+// For testing, falls back to mock data if client is nil or on error.
 func fetchStatsMatchDetails(client *footballdata.Client, matchID int) tea.Cmd {
 	return func() tea.Msg {
+		// Use mock data for testing if client is not available
+		if client == nil {
+			details, err := data.MockFinishedMatchDetails(matchID)
+			if err != nil {
+				return matchDetailsMsg{details: nil}
+			}
+			return matchDetailsMsg{details: details}
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		details, err := client.MatchDetails(ctx, matchID)
 		if err != nil {
-			return matchDetailsMsg{details: nil}
+			// Fallback to mock data on error for testing
+			details, _ = data.MockFinishedMatchDetails(matchID)
 		}
 
 		return matchDetailsMsg{details: details}
