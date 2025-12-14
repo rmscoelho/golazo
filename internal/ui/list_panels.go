@@ -69,7 +69,19 @@ func RenderStatsListPanel(width, height int, listModel list.Model) string {
 }
 
 // RenderMultiPanelViewWithList renders the live matches view with list component.
-func RenderMultiPanelViewWithList(width, height int, listModel list.Model, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool) string {
+func RenderMultiPanelViewWithList(width, height int, listModel list.Model, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, randomSpinner *RandomCharSpinner, viewLoading bool) string {
+	// Reserve space for spinner at top (always reserve to prevent layout shift)
+	spinnerHeight := 2
+	availableHeight := height - spinnerHeight
+	
+	// Render spinner if loading (reserved space prevents layout shift)
+	var spinnerLine string
+	if viewLoading && randomSpinner != nil {
+		spinnerLine = randomSpinner.View() + "\n"
+	} else {
+		spinnerLine = "\n" // Reserve space even when not loading
+	}
+
 	// Calculate panel dimensions
 	leftWidth := width * 35 / 100
 	if leftWidth < 25 {
@@ -82,31 +94,50 @@ func RenderMultiPanelViewWithList(width, height int, listModel list.Model, detai
 	}
 
 	// Render left panel (matches list)
-	leftPanel := RenderLiveMatchesListPanel(leftWidth, height, listModel)
+	leftPanel := RenderLiveMatchesListPanel(leftWidth, availableHeight, listModel)
 
 	// Render right panel (match details with live updates)
-	rightPanel := renderMatchDetailsPanel(rightWidth, height, details, liveUpdates, sp, loading)
+	rightPanel := renderMatchDetailsPanel(rightWidth, availableHeight, details, liveUpdates, sp, loading)
 
 	// Create separator
 	separatorStyle := lipgloss.NewStyle().
 		Foreground(borderColor).
-		Height(height).
+		Height(availableHeight).
 		Padding(0, 1)
 	separator := separatorStyle.Render("│")
 
 	// Combine panels
-	content := lipgloss.JoinHorizontal(
+	panels := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		leftPanel,
 		separator,
 		rightPanel,
 	)
 
+	// Add spinner at top
+	content := lipgloss.JoinVertical(
+		lipgloss.Left,
+		spinnerLine,
+		panels,
+	)
+
 	return content
 }
 
 // RenderStatsViewWithList renders the stats view with list component.
-func RenderStatsViewWithList(width, height int, listModel list.Model, details *api.MatchDetails) string {
+func RenderStatsViewWithList(width, height int, listModel list.Model, details *api.MatchDetails, randomSpinner *RandomCharSpinner, viewLoading bool) string {
+	// Reserve space for spinner at top (always reserve to prevent layout shift)
+	spinnerHeight := 2
+	availableHeight := height - spinnerHeight
+	
+	// Render spinner if loading (reserved space prevents layout shift)
+	var spinnerLine string
+	if viewLoading && randomSpinner != nil {
+		spinnerLine = randomSpinner.View() + "\n"
+	} else {
+		spinnerLine = "\n" // Reserve space even when not loading
+	}
+
 	// Calculate panel dimensions
 	leftWidth := width * 40 / 100
 	if leftWidth < 30 {
@@ -118,7 +149,7 @@ func RenderStatsViewWithList(width, height int, listModel list.Model, details *a
 		leftWidth = width - rightWidth - 1
 	}
 
-	panelHeight := height - 2
+	panelHeight := availableHeight - 2
 
 	// Render left panel (finished matches list)
 	leftPanel := RenderStatsListPanel(leftWidth, panelHeight, listModel)
@@ -134,12 +165,19 @@ func RenderStatsViewWithList(width, height int, listModel list.Model, details *a
 	separator := separatorStyle.Render("│")
 
 	// Combine panels
-	combined := lipgloss.JoinHorizontal(
+	panels := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		leftPanel,
 		separator,
 		rightPanel,
 	)
 
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, combined)
+	// Add spinner at top
+	content := lipgloss.JoinVertical(
+		lipgloss.Left,
+		spinnerLine,
+		panels,
+	)
+
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content)
 }
