@@ -1,6 +1,7 @@
 package fotmob
 
 import (
+	"sort"
 	"strconv"
 	"time"
 
@@ -129,7 +130,7 @@ type event struct {
 	ID        int    `json:"id"`
 	Minute    int    `json:"minute"`
 	Type      string `json:"type"`
-	TeamID    int    `json:"teamId"`
+	TeamID    string `json:"teamId"` // FotMob returns teamId as string
 	Player    string `json:"player,omitempty"`
 	Assist    string `json:"assist,omitempty"`
 	EventType string `json:"eventType,omitempty"`
@@ -151,7 +152,8 @@ func (m fotmobMatchDetails) toAPIMatchDetails() *api.MatchDetails {
 		Events: make([]api.MatchEvent, 0, len(m.Events)),
 	}
 
-	// Convert events
+	// Convert events and sort by minute for chronological order
+	events := make([]api.MatchEvent, 0, len(m.Events))
 	for _, e := range m.Events {
 		event := api.MatchEvent{
 			ID:        e.ID,
@@ -174,8 +176,9 @@ func (m fotmobMatchDetails) toAPIMatchDetails() *api.MatchDetails {
 		// Convert team IDs to int for comparison
 		homeIDInt := parseInt(m.Home.ID)
 		awayIDInt := parseInt(m.Away.ID)
+		eventTeamIDInt := parseInt(e.TeamID)
 
-		switch e.TeamID {
+		switch eventTeamIDInt {
 		case homeIDInt:
 			event.Team = api.Team{
 				ID:        homeIDInt,
@@ -191,13 +194,19 @@ func (m fotmobMatchDetails) toAPIMatchDetails() *api.MatchDetails {
 		default:
 			// Fallback if team ID doesn't match
 			event.Team = api.Team{
-				ID: e.TeamID,
+				ID: eventTeamIDInt,
 			}
 		}
 
-		details.Events = append(details.Events, event)
+		events = append(events, event)
 	}
 
+	// Sort events by minute (chronological order)
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].Minute < events[j].Minute
+	})
+
+	details.Events = events
 	return details
 }
 
