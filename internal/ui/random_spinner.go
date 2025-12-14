@@ -24,8 +24,6 @@ func NewRandomCharSpinner() *RandomCharSpinner {
 	// Random characters similar to the image: alphanumeric, symbols, special chars
 	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`£€¥")
 	
-	rand.Seed(time.Now().UnixNano())
-	
 	// Create neon gradient: cyan to magenta (complementary neon colors)
 	startColor, _ := colorful.Hex("#00FFFF") // Bright cyan (neon accent color)
 	endColor, _ := colorful.Hex("#FF00FF")   // Bright magenta (complementary neon)
