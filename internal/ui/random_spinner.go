@@ -15,8 +15,8 @@ type RandomCharSpinner struct {
 	chars      []rune
 	currentIdx int
 	width      int
-	startColor colorful.Color // Gradient start color (neon cyan)
-	endColor   colorful.Color // Gradient end color (neon magenta - complementary)
+	startColor colorful.Color // Gradient start color (cyan)
+	endColor   colorful.Color // Gradient end color (red)
 }
 
 // NewRandomCharSpinner creates a new random character spinner.
@@ -24,9 +24,9 @@ func NewRandomCharSpinner() *RandomCharSpinner {
 	// Random characters similar to the image: alphanumeric, symbols, special chars
 	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/~`£€¥")
 
-	// Create neon gradient: cyan to magenta (complementary neon colors)
-	startColor, _ := colorful.Hex("#00FFFF") // Bright cyan (neon accent color)
-	endColor, _ := colorful.Hex("#FF00FF")   // Bright magenta (complementary neon)
+	// Create gradient: cyan to red (high energy theme)
+	startColor, _ := colorful.Hex("#00FFFF") // Bright cyan
+	endColor, _ := colorful.Hex("#FF0000")   // Bright red
 
 	return &RandomCharSpinner{
 		chars:      chars,
