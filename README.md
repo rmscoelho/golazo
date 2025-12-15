@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/golazo-demo.gif" alt="Golazo demo" width="600">
+  <img src="assets/golazo-logo.png" alt="Golazo demo" width="600">
 </p>
 
 # Golazo 
