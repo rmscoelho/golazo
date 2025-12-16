@@ -102,13 +102,13 @@ func RenderStatsListPanel(width, height int, finishedList list.Model, upcomingLi
 	return panel
 }
 
-// renderDateRangeSelector renders a horizontal date range selector (1d, 3d).
+// renderDateRangeSelector renders a horizontal date range selector (Today, 3d).
 func renderDateRangeSelector(width int, selected int) string {
 	options := []struct {
 		days  int
 		label string
 	}{
-		{1, "1d"},
+		{1, "Today"},
 		{3, "3d"},
 	}
 
