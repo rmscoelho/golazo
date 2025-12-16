@@ -30,6 +30,7 @@ type model struct {
 	upcomingMatches     []ui.MatchDisplay // Upcoming matches for 1-day stats view
 	selected            int
 	matchDetails        *api.MatchDetails
+	matchDetailsCache   map[int]*api.MatchDetails // Cache for match details to avoid repeated API calls
 	liveUpdates         []string
 	spinner             spinner.Model
 	randomSpinner       *ui.RandomCharSpinner
@@ -90,6 +91,7 @@ func NewModel(useMockData bool) model {
 		statsViewSpinner:    statsViewSpinner,
 		liveUpdates:         []string{},
 		upcomingMatches:     []ui.MatchDisplay{},
+		matchDetailsCache:   make(map[int]*api.MatchDetails), // Initialize cache
 		useMockData:         useMockData,
 		fotmobClient:        fotmob.NewClient(),
 		parser:              fotmob.NewLiveUpdateParser(),
@@ -173,6 +175,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.details != nil {
 			m.matchDetails = msg.details
 
+			// Cache match details for stats view to avoid repeated API calls
+			if m.currentView == viewStats {
+				m.matchDetailsCache[msg.details.ID] = msg.details
+			}
+
 			// Only handle live updates and polling for live matches view
 			if m.currentView == viewLiveMatches {
 				m.liveViewLoading = false
@@ -230,6 +237,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentView = viewMain
 				m.selected = 0
 				m.matchDetails = nil
+				m.matchDetailsCache = make(map[int]*api.MatchDetails) // Clear cache when leaving view
 				m.liveUpdates = []string{}
 				m.lastEvents = []api.MatchEvent{}
 				m.loading = false
@@ -493,6 +501,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statsViewLoading = true
 			m.currentView = viewStats
 			m.loading = true
+			m.matchDetailsCache = make(map[int]*api.MatchDetails) // Fresh cache for new session
 
 			var cmds []tea.Cmd
 			// Use dedicated stats view spinner - initialize immediately when entering stats view
@@ -622,8 +631,10 @@ func (m model) handleStatsViewKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Reload matches with new date range using FotMob
 		m.statsViewLoading = true
 		m.loading = true
-		m.upcomingMatches = []ui.MatchDisplay{}       // Clear upcoming matches when changing range
-		m.upcomingMatchesList.SetItems([]list.Item{}) // Clear upcoming list
+		m.upcomingMatches = []ui.MatchDisplay{}               // Clear upcoming matches when changing range
+		m.upcomingMatchesList.SetItems([]list.Item{})         // Clear upcoming list
+		m.matchDetailsCache = make(map[int]*api.MatchDetails) // Clear cache when date range changes
+		m.matchDetails = nil                                  // Clear current details
 
 		var cmds []tea.Cmd
 		cmds = append(cmds, m.spinner.Tick, m.statsViewSpinner.Init())
@@ -645,8 +656,10 @@ func (m model) handleStatsViewKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Reload matches with new date range using FotMob
 		m.statsViewLoading = true
 		m.loading = true
-		m.upcomingMatches = []ui.MatchDisplay{}       // Clear upcoming matches when changing range
-		m.upcomingMatchesList.SetItems([]list.Item{}) // Clear upcoming list
+		m.upcomingMatches = []ui.MatchDisplay{}               // Clear upcoming matches when changing range
+		m.upcomingMatchesList.SetItems([]list.Item{})         // Clear upcoming list
+		m.matchDetailsCache = make(map[int]*api.MatchDetails) // Clear cache when date range changes
+		m.matchDetails = nil                                  // Clear current details
 
 		var cmds []tea.Cmd
 		cmds = append(cmds, m.spinner.Tick, m.statsViewSpinner.Init())
@@ -673,8 +686,16 @@ func (m model) loadMatchDetails(matchID int) (tea.Model, tea.Cmd) {
 }
 
 // loadStatsMatchDetails loads match details for the stats view.
-// Fetches detailed statistics for a finished match using FotMob API.
+// First checks cache to avoid redundant API calls, then fetches from FotMob if not cached.
 func (m model) loadStatsMatchDetails(matchID int) (tea.Model, tea.Cmd) {
+	// Check cache first - return immediately if we have cached details
+	if cached, ok := m.matchDetailsCache[matchID]; ok {
+		m.matchDetails = cached
+		// No loading state needed - data is already available
+		return m, nil
+	}
+
+	// Not in cache - fetch from API
 	m.loading = true
 	m.statsViewLoading = true
 	return m, tea.Batch(m.spinner.Tick, m.statsViewSpinner.Init(), fetchStatsMatchDetailsFotmob(m.fotmobClient, matchID, m.useMockData))
