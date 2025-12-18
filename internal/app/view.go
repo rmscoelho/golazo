@@ -32,6 +32,8 @@ func (m model) View() string {
 			spinner,
 			m.statsViewLoading,
 			m.statsDateRange,
+			m.statsDaysLoaded,
+			m.statsTotalDays,
 		)
 
 	default:
