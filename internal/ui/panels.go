@@ -8,6 +8,7 @@ import (
 	"github.com/0xjuanma/golazo/internal/constants"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 var (
@@ -662,7 +663,7 @@ func renderEvent(event api.MatchEvent, width int) string {
 // formatMatchEventForDisplay formats a match event for display in the stats view
 // Uses neon styling with red/cyan theme and no emojis
 // renderStyledLiveUpdate renders a live update string with appropriate colors based on symbol prefix.
-// Uses minimal symbol styling: ● red for goals, ▪ cyan for yellow cards, ■ red for red cards,
+// Uses minimal symbol styling: ● gradient for goals, ▪ cyan for yellow cards, ■ red for red cards,
 // ↔ dim for substitutions, · dim for other events.
 func renderStyledLiveUpdate(update string) string {
 	if len(update) == 0 {
@@ -680,30 +681,77 @@ func renderStyledLiveUpdate(update string) string {
 	neonDim := lipgloss.Color("244")
 	neonWhite := lipgloss.Color("255")
 
-	var symbolStyle, textStyle lipgloss.Style
-
 	switch symbol {
-	case "●": // Goal - red symbol, white text
-		symbolStyle = lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-		textStyle = lipgloss.NewStyle().Foreground(neonWhite)
-	case "▪": // Yellow card - cyan symbol, white text
-		symbolStyle = lipgloss.NewStyle().Foreground(neonCyan)
-		textStyle = lipgloss.NewStyle().Foreground(neonWhite)
-	case "■": // Red card - red symbol, white text
-		symbolStyle = lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-		textStyle = lipgloss.NewStyle().Foreground(neonWhite)
+	case "●": // Goal - gradient on [GOAL] label, white text for rest
+		return renderGoalWithGradient(update)
+	case "▪": // Yellow card - cyan color for entire line
+		return lipgloss.NewStyle().Foreground(neonCyan).Render(update)
+	case "■": // Red card - red color for entire line
+		return lipgloss.NewStyle().Foreground(neonRed).Bold(true).Render(update)
 	case "↔": // Substitution - dim symbol and text
-		symbolStyle = lipgloss.NewStyle().Foreground(neonDim)
-		textStyle = lipgloss.NewStyle().Foreground(neonDim)
+		symbolStyle := lipgloss.NewStyle().Foreground(neonDim)
+		textStyle := lipgloss.NewStyle().Foreground(neonDim)
+		return symbolStyle.Render(symbol) + textStyle.Render(rest)
 	case "·": // Other - dim symbol and text
-		symbolStyle = lipgloss.NewStyle().Foreground(neonDim)
-		textStyle = lipgloss.NewStyle().Foreground(neonDim)
+		symbolStyle := lipgloss.NewStyle().Foreground(neonDim)
+		textStyle := lipgloss.NewStyle().Foreground(neonDim)
+		return symbolStyle.Render(symbol) + textStyle.Render(rest)
 	default:
 		// Unknown prefix, render as-is with default style
 		return lipgloss.NewStyle().Foreground(neonWhite).Render(update)
 	}
+}
 
-	return symbolStyle.Render(symbol) + textStyle.Render(rest)
+// renderGoalWithGradient renders a goal event with gradient on the [GOAL] label.
+// The gradient matches the spinner theme (cyan → red).
+func renderGoalWithGradient(update string) string {
+	// Parse gradient colors
+	startColor, _ := colorful.Hex(constants.GradientStartColor) // Cyan
+	endColor, _ := colorful.Hex(constants.GradientEndColor)     // Red
+
+	neonWhite := lipgloss.Color("255")
+	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
+
+	// Find [GOAL] in the string and apply gradient to it
+	goalStart := strings.Index(update, "[GOAL]")
+	if goalStart == -1 {
+		// No [GOAL] found, just render with gradient on first part
+		return applyGradientToText(update, startColor, endColor)
+	}
+
+	goalEnd := goalStart + len("[GOAL]")
+
+	// Build: prefix + gradient[GOAL] + suffix
+	prefix := update[:goalStart]
+	goalText := update[goalStart:goalEnd]
+	suffix := update[goalEnd:]
+
+	// Apply gradient to [GOAL] text character by character
+	gradientGoal := applyGradientToText(goalText, startColor, endColor)
+
+	// Render prefix (● and time) with gradient too for cohesion
+	gradientPrefix := applyGradientToText(prefix, startColor, endColor)
+
+	return gradientPrefix + gradientGoal + whiteStyle.Render(suffix)
+}
+
+// applyGradientToText applies a cyan→red gradient to text, character by character.
+func applyGradientToText(text string, startColor, endColor colorful.Color) string {
+	runes := []rune(text)
+	if len(runes) == 0 {
+		return text
+	}
+
+	var result strings.Builder
+	for i, char := range runes {
+		ratio := float64(i) / float64(max(len(runes)-1, 1))
+		color := startColor.BlendLab(endColor, ratio)
+		hexColor := color.Hex()
+		charStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(hexColor)).Bold(true)
+		result.WriteString(charStyle.Render(string(char)))
+	}
+
+	return result.String()
 }
 
 func formatMatchEventForDisplay(event api.MatchEvent, homeTeam, awayTeam string) string {
