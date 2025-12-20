@@ -554,18 +554,18 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 			content.WriteString("\n")
 		}
 
-		// Display live updates (newest first)
-		if len(liveUpdates) == 0 && !loading {
+		// Display live updates (already sorted by minute descending - newest first)
+		if len(liveUpdates) == 0 && !loading && !isPolling {
 			emptyUpdates := lipgloss.NewStyle().
 				Foreground(neonDim).
 				Padding(0, 0).
 				Render(constants.EmptyNoUpdates)
 			content.WriteString(emptyUpdates)
 		} else if len(liveUpdates) > 0 {
-			// Show updates in reverse order (newest at top)
+			// Events are already sorted descending by minute
 			var updatesList []string
-			for i := len(liveUpdates) - 1; i >= 0; i-- {
-				updateLine := liveUpdateStyle.Render(liveUpdates[i])
+			for _, update := range liveUpdates {
+				updateLine := liveUpdateStyle.Render(update)
 				updatesList = append(updatesList, updateLine)
 			}
 			content.WriteString(strings.Join(updatesList, "\n"))

@@ -155,18 +155,9 @@ func (m model) handleMatchDetails(msg matchDetailsMsg) (tea.Model, tea.Cmd) {
 	if m.currentView == viewLiveMatches || m.pendingSelection == 1 {
 		m.liveViewLoading = false
 
-		// Parse events for live updates
-		var eventsToParse []api.MatchEvent
-		if len(m.lastEvents) == 0 {
-			eventsToParse = msg.details.Events
-		} else {
-			eventsToParse = m.parser.NewEvents(m.lastEvents, msg.details.Events)
-		}
-
-		if len(eventsToParse) > 0 {
-			updates := m.parser.ParseEvents(eventsToParse, msg.details.HomeTeam, msg.details.AwayTeam)
-			m.liveUpdates = append(m.liveUpdates, updates...)
-		}
+		// Parse ALL events to rebuild the live updates list
+		// This ensures proper ordering (descending by minute) and uniqueness
+		m.liveUpdates = m.parser.ParseEvents(msg.details.Events, msg.details.HomeTeam, msg.details.AwayTeam)
 		m.lastEvents = msg.details.Events
 
 		// Continue polling if match is live

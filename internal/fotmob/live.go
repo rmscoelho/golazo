@@ -3,6 +3,7 @@ package fotmob
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -98,10 +99,17 @@ func NewLiveUpdateParser() *LiveUpdateParser {
 }
 
 // ParseEvents converts match events into human-readable update strings.
+// Events are sorted by minute in descending order (most recent first).
 func (p *LiveUpdateParser) ParseEvents(events []api.MatchEvent, homeTeam, awayTeam api.Team) []string {
-	updates := make([]string, 0, len(events))
+	// Sort events by minute descending (most recent first)
+	sorted := make([]api.MatchEvent, len(events))
+	copy(sorted, events)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Minute > sorted[j].Minute
+	})
 
-	for _, event := range events {
+	updates := make([]string, 0, len(sorted))
+	for _, event := range sorted {
 		update := p.formatEvent(event, homeTeam, awayTeam)
 		if update != "" {
 			updates = append(updates, update)
