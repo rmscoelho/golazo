@@ -62,12 +62,14 @@ type model struct {
 	upcomingMatchesList list.Model
 
 	// Loading states
-	loading          bool
-	mainViewLoading  bool
-	liveViewLoading  bool
-	statsViewLoading bool
-	polling          bool
-	pendingSelection int // Tracks which view is being preloaded (-1 = none, 0 = stats, 1 = live)
+	loading            bool
+	mainViewLoading    bool
+	liveViewLoading    bool
+	statsViewLoading   bool
+	polling            bool
+	pendingSelection   int  // Tracks which view is being preloaded (-1 = none, 0 = stats, 1 = live)
+	pollDataReceived   bool // True when poll API response received
+	pollDisplayElapsed bool // True when minimum display time has elapsed
 
 	// Configuration
 	useMockData    bool

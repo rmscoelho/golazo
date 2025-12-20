@@ -529,12 +529,15 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 		}
 	} else {
 		// Live Updates section for live/upcoming matches with neon styling
-		// Build title with optional polling spinner on the right
-		titleText := constants.PanelUpdates
-		if isPolling && pollingSpinner != nil {
-			// Add polling spinner inline with title
+		// Build title - show "Updating..." with spinner only during poll API calls
+		var titleText string
+		if isPolling && loading && pollingSpinner != nil {
+			// Poll API call in progress - show "Updating..." with spinner
 			pollingView := pollingSpinner.View()
-			titleText = titleText + "  " + pollingView
+			titleText = "Updating...  " + pollingView
+		} else {
+			// Not polling or not loading - just show "Updates"
+			titleText = constants.PanelUpdates
 		}
 		updatesTitle := lipgloss.NewStyle().
 			Foreground(neonCyan).
@@ -547,13 +550,6 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 			Render(titleText)
 		content.WriteString(updatesTitle)
 		content.WriteString("\n")
-
-		// Show spinner if loading (initial fetch, not polling)
-		if loading && !isPolling {
-			spinnerText := spinnerStyle.Render(sp.View() + " " + constants.LoadingFetching)
-			content.WriteString(spinnerText)
-			content.WriteString("\n")
-		}
 
 		// Display live updates (already sorted by minute descending - newest first)
 		if len(liveUpdates) == 0 && !loading && !isPolling {
@@ -688,10 +684,8 @@ func renderStyledLiveUpdate(update string) string {
 		return renderCardWithColor(update, neonYellow)
 	case "■": // Red card - red up to [CARD], white for rest
 		return renderCardWithColor(update, neonRed)
-	case "↔": // Substitution - dim symbol and text
-		symbolStyle := lipgloss.NewStyle().Foreground(neonDim)
-		textStyle := lipgloss.NewStyle().Foreground(neonDim)
-		return symbolStyle.Render(symbol) + textStyle.Render(rest)
+	case "↔": // Substitution - color coded players
+		return renderSubstitutionWithColors(update)
 	case "·": // Other - dim symbol and text
 		symbolStyle := lipgloss.NewStyle().Foreground(neonDim)
 		textStyle := lipgloss.NewStyle().Foreground(neonDim)
@@ -700,6 +694,53 @@ func renderStyledLiveUpdate(update string) string {
 		// Unknown prefix, render as-is with default style
 		return lipgloss.NewStyle().Foreground(neonWhite).Render(update)
 	}
+}
+
+// renderSubstitutionWithColors renders a substitution event with color-coded players.
+// Cyan ← arrow = player coming IN (entering the pitch)
+// Red → arrow = player going OUT (leaving the pitch)
+// Format: ↔ 45' [SUB] {OUT}PlayerOut {IN}PlayerIn - Team
+func renderSubstitutionWithColors(update string) string {
+	neonRed := lipgloss.Color("196")
+	neonCyan := lipgloss.Color("51")
+	neonDim := lipgloss.Color("244")
+	neonWhite := lipgloss.Color("255")
+
+	dimStyle := lipgloss.NewStyle().Foreground(neonDim)
+	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
+	outStyle := lipgloss.NewStyle().Foreground(neonRed) // Red = going OUT
+	inStyle := lipgloss.NewStyle().Foreground(neonCyan) // Cyan = coming IN
+
+	// Find the markers
+	outIdx := strings.Index(update, "{OUT}")
+	inIdx := strings.Index(update, "{IN}")
+	teamIdx := strings.LastIndex(update, " - ")
+
+	if outIdx == -1 || inIdx == -1 {
+		// Fallback to dim rendering if markers not found
+		return dimStyle.Render(update)
+	}
+
+	// Split the string into parts
+	prefix := update[:outIdx]             // "↔ 45' [SUB] "
+	playerOut := update[outIdx+5 : inIdx] // Player going OUT (after {OUT}, before {IN})
+	playerIn := update[inIdx+4 : teamIdx] // Player coming IN (after {IN}, before " - ")
+	suffix := update[teamIdx:]            // " - Team"
+
+	// Render prefix (symbol, time, [SUB]) in dim
+	result := dimStyle.Render(prefix)
+
+	// Render player coming IN with cyan ← arrow (entering the pitch)
+	result += inStyle.Render("← " + strings.TrimSpace(playerIn))
+	result += whiteStyle.Render(" ")
+
+	// Render player going OUT with red → arrow (leaving the pitch)
+	result += outStyle.Render("→ " + strings.TrimSpace(playerOut))
+
+	// Render suffix (team) in white
+	result += whiteStyle.Render(suffix)
+
+	return result
 }
 
 // renderCardWithColor renders a card event with color on symbol, time, and [CARD] label.

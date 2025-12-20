@@ -8,15 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Polling Spinner** 🎯 - Small gradient random spinner shows when live match data is being polled
-- **Kick-off Time** 🎯 - Live matches now display kick-off time (KO) in the match list
+- **Polling Spinner** - Small gradient random spinner shows when live match data is being polled
+- **Kick-off Time** - Live matches now display kick-off time (KO) in the match list
 
 ### Changed
-- **Event Styling** 🔄 - Live events use minimal symbols with color coding: gradient [GOAL], yellow [CARD] for yellow, red [CARD] for red
+- **Event Styling** - Minimal styling added to live events to clearly denote each type
 
 ### Fixed
-- **Live Events Order** 🐛 - Events now sorted by time (descending) with proper uniqueness
-- **Event Color Consistency** 🐛 - Color applied only to symbol, time, and label; player/team in white
+- **Live Events Order** - Events now sorted by time (descending) with proper uniqueness
+- **Polling Spinner** - Update spinner and message to act as visual feedback of polling
 
 ## [0.1.0] - 2025-12-19
 
