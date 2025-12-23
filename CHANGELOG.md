@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **League Selection** - New settings customization to select and persist league preferences
+- **Result List Filtering** - New / filtering command for all result lists
 
 ### Changed
 
