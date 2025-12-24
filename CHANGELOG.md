@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Windows Support** - Added Windows builds (amd64, arm64) and PowerShell install script
+- **10 New Leagues** - Eredivisie, Primeira Liga, Belgian Pro League, Scottish Premiership, Süper Lig, Swiss Super League, Austrian Bundesliga, Ekstraklasa, Copa del Rey, Liga MX
 
 ### Changed
 - **Cards Section Redesign** - Cards now display detailed list with player name, minute, and team instead of just counts
+- **Default Leagues** - When no leagues are selected in Settings, app now defaults to Premier League, La Liga, and Champions League (instead of all 24 leagues) for faster performance
 
 ### Fixed
 

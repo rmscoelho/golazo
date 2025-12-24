@@ -52,19 +52,6 @@ golazo
 
 ## Supported Leagues
 
-More leagues/competitions will be supported in the future. You can personalize your league selections in the Settings menu.
+24 leagues and competitions across Europe, South America, and North America. [View full list →](docs/SUPPORTED_LEAGUES.md)
 
-- 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League
-- 🇪🇸 La Liga
-- 🇩🇪 Bundesliga
-- 🇮🇹 Serie A
-- 🇫🇷 Ligue 1
-- 🏆 UEFA Champions League
-- 🏆 UEFA Europa League
-- 🇧🇷 Brasileirão Série A
-- 🇦🇷 Liga Profesional Argentina
-- 🇺🇸 MLS
-- 🏆 Copa Libertadores
-- 🏆 Copa America
-- 🇪🇺 UEFA Euro
-- 🌍 FIFA World Cup
+Customize your league selection in the **Settings** menu.

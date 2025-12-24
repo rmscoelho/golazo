@@ -1,0 +1,58 @@
+# Supported Leagues
+
+Golazo supports **24 leagues and competitions**. Customize your selection in Settings.
+
+## Europe — Top Leagues
+
+| | League |
+|---|--------|
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Premier League |
+| 🇪🇸 | La Liga |
+| 🇩🇪 | Bundesliga |
+| 🇮🇹 | Serie A |
+| 🇫🇷 | Ligue 1 |
+
+## Europe — Other Leagues
+
+| | League |
+|---|--------|
+| 🇳🇱 | Eredivisie |
+| 🇵🇹 | Primeira Liga |
+| 🇧🇪 | Belgian Pro League |
+| 🏴󠁧󠁢󠁳󠁣󠁴󠁿 | Scottish Premiership |
+| 🇹🇷 | Süper Lig |
+| 🇨🇭 | Swiss Super League |
+| 🇦🇹 | Austrian Bundesliga |
+| 🇵🇱 | Ekstraklasa |
+
+## European Competitions
+
+| | Competition |
+|---|-------------|
+| 🏆 | UEFA Champions League |
+| 🏆 | UEFA Europa League |
+| 🇪🇺 | UEFA Euro |
+| 🇪🇸 | Copa del Rey |
+
+## South America
+
+| | League/Competition |
+|---|-------------------|
+| 🇧🇷 | Brasileirão Série A |
+| 🇦🇷 | Liga Profesional |
+| 🏆 | Copa Libertadores |
+| 🏆 | Copa America |
+
+## North America
+
+| | League |
+|---|--------|
+| 🇺🇸 | MLS |
+| 🇲🇽 | Liga MX |
+
+## International
+
+| | Competition |
+|---|-------------|
+| 🌍 | FIFA World Cup |
+

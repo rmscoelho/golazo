@@ -25,17 +25,30 @@ var AllSupportedLeagues = []LeagueInfo{
 	{ID: 54, Name: "Bundesliga", Country: "Germany"},
 	{ID: 55, Name: "Serie A", Country: "Italy"},
 	{ID: 53, Name: "Ligue 1", Country: "France"},
+	// Second Tier European Leagues
+	{ID: 57, Name: "Eredivisie", Country: "Netherlands"},
+	{ID: 61, Name: "Primeira Liga", Country: "Portugal"},
+	{ID: 114, Name: "Belgian Pro League", Country: "Belgium"},
+	{ID: 64, Name: "Scottish Premiership", Country: "Scotland"},
+	{ID: 71, Name: "Süper Lig", Country: "Turkey"},
+	{ID: 66, Name: "Swiss Super League", Country: "Switzerland"},
+	{ID: 109, Name: "Austrian Bundesliga", Country: "Austria"},
+	{ID: 52, Name: "Ekstraklasa", Country: "Poland"},
 	// European Competitions
 	{ID: 42, Name: "UEFA Champions League", Country: "Europe"},
 	{ID: 73, Name: "UEFA Europa League", Country: "Europe"},
 	{ID: 50, Name: "UEFA Euro", Country: "Europe"},
+	// Domestic Cups
+	{ID: 138, Name: "Copa del Rey", Country: "Spain"},
 	// South America
 	{ID: 268, Name: "Brasileirão Série A", Country: "Brazil"},
 	{ID: 112, Name: "Liga Profesional", Country: "Argentina"},
 	{ID: 14, Name: "Copa Libertadores", Country: "South America"},
 	{ID: 44, Name: "Copa America", Country: "South America"},
-	// Other
+	// North America
 	{ID: 130, Name: "MLS", Country: "USA"},
+	{ID: 230, Name: "Liga MX", Country: "Mexico"},
+	// International
 	{ID: 77, Name: "FIFA World Cup", Country: "International"},
 }
 
@@ -96,17 +109,21 @@ func SaveSettings(settings *Settings) error {
 	return os.WriteFile(path, data, 0644)
 }
 
+// DefaultLeagueIDs contains the default leagues used when no selection is made.
+// These are the most popular leagues for efficient API usage.
+var DefaultLeagueIDs = []int{
+	47, // Premier League
+	87, // La Liga
+	42, // UEFA Champions League
+}
+
 // GetActiveLeagueIDs returns the league IDs that should be used for API calls.
-// If no leagues are selected in settings, returns all supported league IDs.
+// If no leagues are selected in settings, returns the default leagues (not all).
 func GetActiveLeagueIDs() []int {
 	settings, err := LoadSettings()
 	if err != nil || len(settings.SelectedLeagues) == 0 {
-		// Return all league IDs as default
-		ids := make([]int, len(AllSupportedLeagues))
-		for i, league := range AllSupportedLeagues {
-			ids[i] = league.ID
-		}
-		return ids
+		// Return default leagues for efficient API usage
+		return DefaultLeagueIDs
 	}
 
 	return settings.SelectedLeagues

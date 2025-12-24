@@ -67,8 +67,8 @@ func NewSettingsState() *SettingsState {
 
 	selected := make(map[int]bool)
 
-	// If no leagues are selected in settings, none are checked (default = all)
-	// User sees unchecked = will use all leagues
+	// If no leagues are selected in settings, none are checked
+	// User sees unchecked = will use default leagues (Premier, La Liga, UCL)
 	if len(settings.SelectedLeagues) > 0 {
 		for _, id := range settings.SelectedLeagues {
 			selected[id] = true
@@ -180,7 +180,7 @@ func RenderSettingsView(width, height int, state *SettingsState) string {
 	selectedCount := state.SelectedCount()
 	var infoText string
 	if selectedCount == 0 {
-		infoText = "No leagues selected - All leagues will be shown"
+		infoText = "No selection - using default leagues"
 	} else {
 		infoText = fmt.Sprintf("%d of %d leagues selected", selectedCount, len(state.Leagues))
 	}
