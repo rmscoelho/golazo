@@ -26,6 +26,7 @@ var AllSupportedLeagues = []LeagueInfo{
 	{ID: 55, Name: "Serie A", Country: "Italy"},
 	{ID: 53, Name: "Ligue 1", Country: "France"},
 	// Second Tier European Leagues
+	{ID: 48, Name: "EFL Championship", Country: "England"},
 	{ID: 57, Name: "Eredivisie", Country: "Netherlands"},
 	{ID: 61, Name: "Primeira Liga", Country: "Portugal"},
 	{ID: 114, Name: "Belgian Pro League", Country: "Belgium"},
@@ -40,6 +41,10 @@ var AllSupportedLeagues = []LeagueInfo{
 	{ID: 50, Name: "UEFA Euro", Country: "Europe"},
 	// Domestic Cups
 	{ID: 138, Name: "Copa del Rey", Country: "Spain"},
+	{ID: 132, Name: "FA Cup", Country: "England"},
+	{ID: 209, Name: "DFB Pokal", Country: "Germany"},
+	{ID: 141, Name: "Coppa Italia", Country: "Italy"},
+	{ID: 134, Name: "Coupe de France", Country: "France"},
 	// South America
 	{ID: 268, Name: "Brasileirão Série A", Country: "Brazil"},
 	{ID: 112, Name: "Liga Profesional", Country: "Argentina"},
@@ -48,8 +53,11 @@ var AllSupportedLeagues = []LeagueInfo{
 	// North America
 	{ID: 130, Name: "MLS", Country: "USA"},
 	{ID: 230, Name: "Liga MX", Country: "Mexico"},
+	// Middle East
+	{ID: 536, Name: "Saudi Pro League", Country: "Saudi Arabia"},
 	// International
 	{ID: 77, Name: "FIFA World Cup", Country: "International"},
+	{ID: 289, Name: "Africa Cup of Nations", Country: "Africa"},
 }
 
 // Settings represents user preferences stored in settings.yaml.

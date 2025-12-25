@@ -52,6 +52,6 @@ golazo
 
 ## Supported Leagues
 
-24 leagues and competitions across Europe, South America, and North America. [View full list →](docs/SUPPORTED_LEAGUES.md)
+Many leagues and competitions across Europe, South America, North America, Middle East, and more. [View full list →](docs/SUPPORTED_LEAGUES.md)
 
 Customize your league selection in the **Settings** menu.

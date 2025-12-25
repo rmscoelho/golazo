@@ -1,6 +1,8 @@
 # Supported Leagues
 
-Golazo supports **24 leagues and competitions**. Customize your selection in Settings.
+Golazo supports **30 leagues and competitions**. Customize your selection in Settings.
+
+> **Missing your favourite league?** [Create an issue](https://github.com/0xjuanma/golazo/issues/new) and we'll add it!
 
 ## Europe — Top Leagues
 
@@ -16,6 +18,7 @@ Golazo supports **24 leagues and competitions**. Customize your selection in Set
 
 | | League |
 |---|--------|
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL Championship |
 | 🇳🇱 | Eredivisie |
 | 🇵🇹 | Primeira Liga |
 | 🇧🇪 | Belgian Pro League |
@@ -32,6 +35,15 @@ Golazo supports **24 leagues and competitions**. Customize your selection in Set
 | 🏆 | UEFA Champions League |
 | 🏆 | UEFA Europa League |
 | 🇪🇺 | UEFA Euro |
+
+## Domestic Cups
+
+| | Cup |
+|---|-----|
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | FA Cup |
+| 🇩🇪 | DFB Pokal |
+| 🇮🇹 | Coppa Italia |
+| 🇫🇷 | Coupe de France |
 | 🇪🇸 | Copa del Rey |
 
 ## South America
@@ -50,9 +62,15 @@ Golazo supports **24 leagues and competitions**. Customize your selection in Set
 | 🇺🇸 | MLS |
 | 🇲🇽 | Liga MX |
 
+## Middle East
+
+| | League |
+|---|--------|
+| 🇸🇦 | Saudi Pro League |
+
 ## International
 
 | | Competition |
 |---|-------------|
 | 🌍 | FIFA World Cup |
-
+| 🌍 | Africa Cup of Nations |
