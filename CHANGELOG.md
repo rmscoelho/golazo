@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **More Leagues & International Competitions** - EFL Championship, FA Cup, DFB Pokal, Coppa Italia, Coupe de France, Saudi Pro League, Africa Cup of Nations
 
 ### Changed
 
