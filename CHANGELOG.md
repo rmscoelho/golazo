@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- **Poll Spinner Duration** - Increased "Updating..." spinner display time to 1 second for better visibility
 
 ### Fixed
+- **Card Colors in All Events** - Yellow and red cards now display proper colors (yellow/red) instead of cyan in the FT view's All Events section
 
 ## [0.5.0] - 2025-12-25
 
