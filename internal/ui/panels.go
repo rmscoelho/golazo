@@ -267,11 +267,6 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 			content.WriteString(cardsTitle)
 			content.WriteString("\n")
 
-			// Color styles for card types
-			neonYellow := lipgloss.Color("226") // Bright yellow for yellow cards
-			yellowStyle := lipgloss.NewStyle().Foreground(neonYellow).Bold(true)
-			redStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-
 			for _, card := range cardEvents {
 				player := "Unknown"
 				if card.Player != nil {
@@ -279,12 +274,12 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 				}
 				teamName := card.Team.ShortName
 
-				// Determine card type and apply appropriate color
-				cardSymbol := "▪"
-				cardStyle := yellowStyle
+				// Determine card type and apply appropriate color (using shared styles)
+				cardSymbol := CardSymbolYellow
+				cardStyle := neonYellowCardStyle
 				if card.EventType != nil && *card.EventType == "red" {
-					cardSymbol = "■"
-					cardStyle = redStyle
+					cardSymbol = CardSymbolRed
+					cardStyle = neonRedCardStyle
 				}
 
 				// Format: ▪ 28' PlayerName (Team)
@@ -550,10 +545,7 @@ func applyGradientToText(text string, startColor, endColor colorful.Color) strin
 }
 
 func formatMatchEventForDisplay(event api.MatchEvent, homeTeam, awayTeam string) string {
-	// Neon colors
-	neonRed := lipgloss.Color("196")
-	neonCyan := lipgloss.Color("51")
-	neonWhite := lipgloss.Color("255")
+	// Uses package-level neon colors from neon_styles.go
 
 	minuteStr := fmt.Sprintf("%d'", event.Minute)
 	minuteStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true).Width(4).Align(lipgloss.Right).Render(minuteStr)
@@ -588,12 +580,16 @@ func formatMatchEventForDisplay(event api.MatchEvent, homeTeam, awayTeam string)
 		if event.EventType != nil {
 			cardType = *event.EventType
 		}
-		cardIndicator := lipgloss.NewStyle().Foreground(neonCyan).Render("▪") // cyan for yellow
+		// Use shared card styles for consistency
+		cardSymbol := CardSymbolYellow
+		cardStyle := neonYellowCardStyle
 		if cardType == "red" {
-			cardIndicator = lipgloss.NewStyle().Foreground(neonRed).Render("▪") // red for red
+			cardSymbol = CardSymbolRed
+			cardStyle = neonRedCardStyle
 		}
-		cardStyle := lipgloss.NewStyle().Foreground(neonWhite)
-		eventText = lipgloss.JoinHorizontal(lipgloss.Left, cardIndicator, cardStyle.Render(fmt.Sprintf(" %s - %s", teamName, playerName)))
+		cardIndicator := cardStyle.Render(cardSymbol)
+		textStyle := lipgloss.NewStyle().Foreground(neonWhite)
+		eventText = lipgloss.JoinHorizontal(lipgloss.Left, cardIndicator, textStyle.Render(fmt.Sprintf(" %s - %s", teamName, playerName)))
 	case "substitution":
 		teamName := homeTeam
 		if event.Team.ShortName != homeTeam {

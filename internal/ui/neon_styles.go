@@ -7,14 +7,25 @@ import (
 // Neon design styles - Golazo red/cyan theme
 // Bold, vibrant design with thick borders and high contrast.
 
+// Card symbols - consistent across all views
+const (
+	CardSymbolYellow = "▪" // Small square for yellow cards
+	CardSymbolRed    = "■" // Filled square for red cards
+)
+
 var (
 	// Neon color palette - Golazo brand
 	neonRed     = lipgloss.Color("196") // Bright red
 	neonCyan    = lipgloss.Color("51")  // Electric cyan
+	neonYellow  = lipgloss.Color("226") // Bright yellow for cards
 	neonWhite   = lipgloss.Color("255") // Pure white
 	neonDark    = lipgloss.Color("236") // Dark background
 	neonDim     = lipgloss.Color("244") // Gray dim text
 	neonDarkDim = lipgloss.Color("239") // Slightly lighter dark
+
+	// Card styles - reusable across all views
+	neonYellowCardStyle = lipgloss.NewStyle().Foreground(neonYellow).Bold(true)
+	neonRedCardStyle    = lipgloss.NewStyle().Foreground(neonRed).Bold(true)
 
 	// Neon panel style - thick red border
 	neonPanelStyle = lipgloss.NewStyle().

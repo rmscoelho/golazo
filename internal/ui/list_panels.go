@@ -448,11 +448,6 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails) 
 		lines = append(lines, "")
 		lines = append(lines, neonHeaderStyle.Render("Cards"))
 
-		// Color styles for card types
-		neonYellow := lipgloss.Color("226") // Bright yellow for yellow cards
-		yellowStyle := lipgloss.NewStyle().Foreground(neonYellow).Bold(true)
-		redStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-
 		for _, card := range cardEvents {
 			player := "Unknown"
 			if card.Player != nil {
@@ -463,12 +458,12 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails) 
 				teamName = card.Team.Name
 			}
 
-			// Determine card type and apply appropriate color
-			cardSymbol := "▪"
-			cardStyle := yellowStyle
+			// Determine card type and apply appropriate color (using shared styles)
+			cardSymbol := CardSymbolYellow
+			cardStyle := neonYellowCardStyle
 			if card.EventType != nil && (*card.EventType == "red" || *card.EventType == "redcard" || *card.EventType == "secondyellow") {
-				cardSymbol = "■"
-				cardStyle = redStyle
+				cardSymbol = CardSymbolRed
+				cardStyle = neonRedCardStyle
 			}
 
 			// Format: ▪ 28' PlayerName (Team)
