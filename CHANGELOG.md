@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+- **Windows Rendering** - Fixed layout shift issue when navigating between matches on Windows Terminal
 
 ## [0.6.0] - 2025-12-26
 

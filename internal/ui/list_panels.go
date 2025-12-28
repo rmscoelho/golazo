@@ -158,6 +158,13 @@ func RenderMultiPanelViewWithList(width, height int, listModel list.Model, detai
 	}
 
 	// Render spinner centered in reserved space
+	// ALWAYS use styled approach with explicit height to prevent layout shifts
+	spinnerStyle := lipgloss.NewStyle().
+		Width(width).
+		Height(spinnerHeight).
+		Align(lipgloss.Center).
+		AlignVertical(lipgloss.Center)
+
 	var spinnerArea string
 	if viewLoading && randomSpinner != nil {
 		spinnerView := randomSpinner.View()
@@ -167,25 +174,13 @@ func RenderMultiPanelViewWithList(width, height int, listModel list.Model, detai
 			progressText = fmt.Sprintf("  Scanning batch %d/%d...", leaguesLoaded+1, totalLeagues)
 		}
 		if spinnerView != "" {
-			// Center the spinner horizontally using style with width and alignment
-			spinnerStyle := lipgloss.NewStyle().
-				Width(width).
-				Height(spinnerHeight).
-				Align(lipgloss.Center).
-				AlignVertical(lipgloss.Center)
 			spinnerArea = spinnerStyle.Render(spinnerView + progressText)
 		} else {
-			// Fallback if spinner view is empty
-			spinnerStyle := lipgloss.NewStyle().
-				Width(width).
-				Height(spinnerHeight).
-				Align(lipgloss.Center).
-				AlignVertical(lipgloss.Center)
 			spinnerArea = spinnerStyle.Render("Loading..." + progressText)
 		}
 	} else {
-		// Reserve space with empty lines - ensure it takes up exactly spinnerHeight lines
-		spinnerArea = strings.Repeat("\n", spinnerHeight)
+		// Reserve space with empty styled box - explicit height prevents layout shifts
+		spinnerArea = spinnerStyle.Render("")
 	}
 
 	// Calculate panel dimensions
@@ -251,6 +246,13 @@ func RenderStatsViewWithList(width, height int, finishedList list.Model, upcomin
 	}
 
 	// Render spinner centered in reserved space - match live view exactly
+	// ALWAYS use styled approach with explicit height to prevent layout shifts
+	spinnerStyle := lipgloss.NewStyle().
+		Width(width).
+		Height(spinnerHeight).
+		Align(lipgloss.Center).
+		AlignVertical(lipgloss.Center)
+
 	var spinnerArea string
 	if viewLoading && randomSpinner != nil {
 		spinnerView := randomSpinner.View()
@@ -260,25 +262,13 @@ func RenderStatsViewWithList(width, height int, finishedList list.Model, upcomin
 			progressText = fmt.Sprintf("  Loading day %d/%d...", daysLoaded+1, totalDays)
 		}
 		if spinnerView != "" {
-			// Center the spinner horizontally using style with width and alignment
-			spinnerStyle := lipgloss.NewStyle().
-				Width(width).
-				Height(spinnerHeight).
-				Align(lipgloss.Center).
-				AlignVertical(lipgloss.Center)
 			spinnerArea = spinnerStyle.Render(spinnerView + progressText)
 		} else {
-			// Fallback if spinner view is empty
-			spinnerStyle := lipgloss.NewStyle().
-				Width(width).
-				Height(spinnerHeight).
-				Align(lipgloss.Center).
-				AlignVertical(lipgloss.Center)
 			spinnerArea = spinnerStyle.Render("Loading..." + progressText)
 		}
 	} else {
-		// Reserve space with empty lines - ensure it takes up exactly spinnerHeight lines
-		spinnerArea = strings.Repeat("\n", spinnerHeight)
+		// Reserve space with empty styled box - explicit height prevents layout shifts
+		spinnerArea = spinnerStyle.Render("")
 	}
 
 	// Calculate panel dimensions - match live view exactly (35% left, 65% right)
