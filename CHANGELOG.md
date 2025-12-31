@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- **Upcoming Matches in Live View** - Today's upcoming matches now display at the bottom of the Live View instead of the Finished Matches view
 
 ### Fixed
 - **Windows Self-Update** - Fixed `--update` failing when golazo is already running
