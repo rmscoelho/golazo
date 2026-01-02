@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Center-Aligned Event Timeline** - Match events now display with centered time, home events expand left, away events expand right
 - **New Leagues** - Add Colombian division A & B leagues, Ireland Premier & First Division. (Thanks @jcmuller & @ryandeering)
 
 ### Changed
+- **Center-Aligned Event Timeline** - Match events now display with centered time, home events expand left, away events expand right
 
 ### Fixed
 - **Finished Matches Navigation** - H/left & L/right arrow keys now correctly cycle timeframe
