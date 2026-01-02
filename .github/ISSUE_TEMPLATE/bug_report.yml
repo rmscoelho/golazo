@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your setup details
+      value: |
+        - Golazo version: 
+        - OS: 
+        - Terminal: 
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? Include steps to reproduce if possible.
+      placeholder: "Describe the bug and how to reproduce it..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots / Videos
+      description: Optional - attach visuals to help explain
+    validations:
+      required: false
