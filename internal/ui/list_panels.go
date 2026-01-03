@@ -13,6 +13,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// GoalLinksMap maps goal keys (matchID:minute) to replay URLs.
+// Used to enhance goal event display with video replay links.
+type GoalLinksMap map[string]string
+
+// MakeGoalLinkKey creates a key for the goal links map.
+func MakeGoalLinkKey(matchID, minute int) string {
+	return fmt.Sprintf("%d:%d", matchID, minute)
+}
+
+// GetReplayURL returns the replay URL for a goal if available.
+func (g GoalLinksMap) GetReplayURL(matchID, minute int) string {
+	if g == nil {
+		return ""
+	}
+	return g[MakeGoalLinkKey(matchID, minute)]
+}
+
 // RenderLiveMatchesListPanel renders the left panel using bubbletea list component.
 // Note: listModel is passed by value, so SetSize must be called before this function.
 // Uses Neon design with Golazo red/cyan theme.
@@ -227,7 +244,7 @@ func renderDateRangeSelector(width int, selected int) string {
 // leaguesLoaded and totalLeagues show loading progress during progressive loading.
 // pollingSpinner and isPolling control the small polling indicator in the right panel.
 // upcomingMatches are displayed at the bottom of the left panel (fixed, not scrollable).
-func RenderMultiPanelViewWithList(width, height int, listModel list.Model, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, randomSpinner *RandomCharSpinner, viewLoading bool, leaguesLoaded int, totalLeagues int, pollingSpinner *RandomCharSpinner, isPolling bool, upcomingMatches []MatchDisplay) string {
+func RenderMultiPanelViewWithList(width, height int, listModel list.Model, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, randomSpinner *RandomCharSpinner, viewLoading bool, leaguesLoaded int, totalLeagues int, pollingSpinner *RandomCharSpinner, isPolling bool, upcomingMatches []MatchDisplay, goalLinks GoalLinksMap) string {
 	// Handle edge case: if width/height not set, use defaults
 	if width <= 0 {
 		width = 80
@@ -288,7 +305,7 @@ func RenderMultiPanelViewWithList(width, height int, listModel list.Model, detai
 	leftPanel := RenderLiveMatchesListPanel(leftWidth, panelHeight, listModel, upcomingMatches)
 
 	// Render right panel (match details with live updates) - shifted down
-	rightPanel := renderMatchDetailsPanelWithPolling(rightWidth, panelHeight, details, liveUpdates, sp, loading, pollingSpinner, isPolling)
+	rightPanel := renderMatchDetailsPanelWithPolling(rightWidth, panelHeight, details, liveUpdates, sp, loading, pollingSpinner, isPolling, goalLinks)
 
 	// Create separator with neon red accent
 	separatorStyle := neonSeparatorStyle.Height(panelHeight)
@@ -316,7 +333,7 @@ func RenderMultiPanelViewWithList(width, height int, listModel list.Model, detai
 // Rebuilt to match live view structure exactly: spinner at top, left panel (matches), right panel (details).
 // daysLoaded and totalDays show loading progress during progressive loading.
 // Note: Upcoming matches are now shown in the Live view instead.
-func RenderStatsViewWithList(width, height int, finishedList list.Model, details *api.MatchDetails, randomSpinner *RandomCharSpinner, viewLoading bool, dateRange int, daysLoaded int, totalDays int) string {
+func RenderStatsViewWithList(width, height int, finishedList list.Model, details *api.MatchDetails, randomSpinner *RandomCharSpinner, viewLoading bool, dateRange int, daysLoaded int, totalDays int, goalLinks GoalLinksMap) string {
 	// Handle edge case: if width/height not set, use defaults
 	if width <= 0 {
 		width = 80
@@ -377,7 +394,7 @@ func RenderStatsViewWithList(width, height int, finishedList list.Model, details
 	leftPanel := RenderStatsListPanel(leftWidth, panelHeight, finishedList, dateRange)
 
 	// Render right panel (match details) - use dedicated stats panel renderer
-	rightPanel := renderStatsMatchDetailsPanel(rightWidth, panelHeight, details)
+	rightPanel := renderStatsMatchDetailsPanel(rightWidth, panelHeight, details, goalLinks)
 
 	// Create separator with neon red accent
 	separatorStyle := neonSeparatorStyle.Height(panelHeight)
@@ -405,7 +422,7 @@ func RenderStatsViewWithList(width, height int, finishedList list.Model, details
 // renderStatsMatchDetailsPanel renders the right panel for stats view with match details.
 // Uses Neon design with Golazo red/cyan theme.
 // Displays expanded match information including statistics, lineups, and more.
-func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails) string {
+func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails, goalLinks GoalLinksMap) string {
 	if details == nil {
 		emptyMessage := neonDimStyle.
 			Align(lipgloss.Center).
@@ -502,7 +519,16 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails) 
 			if g.Assist != nil && *g.Assist != "" {
 				playerDetails += neonDimStyle.Render(fmt.Sprintf(" (%s)", *g.Assist))
 			}
-			goalContent := buildEventContent(playerDetails, "●", neonScoreStyle.Render("GOAL"), isHome)
+
+			// Check for replay link and add indicator
+			replayURL := goalLinks.GetReplayURL(details.ID, g.Minute)
+			replayIndicator := ""
+			if replayURL != "" {
+				// Add clickable replay indicator with hyperlink
+				replayIndicator = " " + CreateGoalLinkDisplay("", replayURL)
+			}
+
+			goalContent := buildEventContent(playerDetails+replayIndicator, "●", neonScoreStyle.Render("GOAL"), isHome)
 			goalLine := renderCenterAlignedEvent(fmt.Sprintf("%d'", g.Minute), goalContent, isHome, contentWidth)
 			lines = append(lines, goalLine)
 		}
@@ -612,7 +638,7 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails) 
 // RenderMatchDetailsPanel is an exported version of renderStatsMatchDetailsPanel
 // for use by debug scripts. Renders match details in the Golazo stats view style.
 func RenderMatchDetailsPanel(width, height int, details *api.MatchDetails) string {
-	return renderStatsMatchDetailsPanel(width, height, details)
+	return renderStatsMatchDetailsPanel(width, height, details, nil)
 }
 
 // Fixed bar width for consistent UI

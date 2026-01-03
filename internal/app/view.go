@@ -1,6 +1,9 @@
 package app
 
-import "github.com/0xjuanma/golazo/internal/ui"
+import (
+	"github.com/0xjuanma/golazo/internal/reddit"
+	"github.com/0xjuanma/golazo/internal/ui"
+)
 
 // View renders the current application state.
 func (m model) View() string {
@@ -24,6 +27,7 @@ func (m model) View() string {
 			m.pollingSpinner,
 			m.polling,
 			m.liveUpcomingMatches,
+			m.buildGoalLinksMap(),
 		)
 
 	case viewStats:
@@ -38,6 +42,7 @@ func (m model) View() string {
 			m.statsDateRange,
 			m.statsDaysLoaded,
 			m.statsTotalDays,
+			m.buildGoalLinksMap(),
 		)
 
 	case viewSettings:
@@ -101,3 +106,22 @@ func (m *model) ensureStatsSpinner() *ui.RandomCharSpinner {
 	}
 	return m.statsViewSpinner
 }
+
+// buildGoalLinksMap converts the model's goal links to a UI-friendly map.
+func (m *model) buildGoalLinksMap() ui.GoalLinksMap {
+	if len(m.goalLinks) == 0 {
+		return nil
+	}
+
+	result := make(ui.GoalLinksMap)
+	for key, link := range m.goalLinks {
+		if link != nil && link.URL != "" {
+			uiKey := ui.MakeGoalLinkKey(key.MatchID, key.Minute)
+			result[uiKey] = link.URL
+		}
+	}
+	return result
+}
+
+// Ensure reddit.GoalLinkKey is used (avoid unused import)
+var _ reddit.GoalLinkKey

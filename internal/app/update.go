@@ -6,6 +6,7 @@ import (
 
 	"github.com/0xjuanma/golazo/internal/api"
 	"github.com/0xjuanma/golazo/internal/fotmob"
+	"github.com/0xjuanma/golazo/internal/reddit"
 	"github.com/0xjuanma/golazo/internal/ui"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -62,6 +63,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case list.FilterMatchesMsg:
 		// Route filter matches message to the appropriate list based on current view
 		return m.handleFilterMatches(msg)
+
+	case goalLinksMsg:
+		return m.handleGoalLinks(msg)
 
 	default:
 		// Fallback handler for ui.TickMsg type assertion
@@ -159,12 +163,27 @@ func (m model) handleMatchDetails(msg matchDetailsMsg) (tea.Model, tea.Cmd) {
 
 	m.matchDetails = msg.details
 
+	// Trigger goal link fetching from Reddit (on-demand, non-blocking)
+	// Only fetch if there are goal events and we have a Reddit client
+	if m.redditClient != nil && len(msg.details.Events) > 0 {
+		hasGoals := false
+		for _, event := range msg.details.Events {
+			if event.Type == "goal" {
+				hasGoals = true
+				break
+			}
+		}
+		if hasGoals {
+			cmds = append(cmds, fetchGoalLinks(m.redditClient, msg.details))
+		}
+	}
+
 	// Cache for stats view (including during preload)
 	if m.currentView == viewStats || m.pendingSelection == 0 {
 		m.matchDetailsCache[msg.details.ID] = msg.details
 		m.loading = false
 		m.statsViewLoading = false
-		return m, nil
+		return m, tea.Batch(cmds...)
 	}
 
 	// Handle live matches view (including during preload)
@@ -950,4 +969,36 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// handleGoalLinks processes goal replay links fetched from Reddit.
+func (m model) handleGoalLinks(msg goalLinksMsg) (tea.Model, tea.Cmd) {
+	if len(msg.links) == 0 {
+		return m, nil
+	}
+
+	// Merge new links into the goal links map
+	if m.goalLinks == nil {
+		m.goalLinks = make(map[reddit.GoalLinkKey]*reddit.GoalLink)
+	}
+
+	for key, link := range msg.links {
+		m.goalLinks[key] = link
+	}
+
+	return m, nil
+}
+
+// GetGoalReplayURL returns the replay URL for a goal if available.
+// Returns empty string if no replay link is cached.
+func (m *model) GetGoalReplayURL(matchID, minute int) string {
+	if m.goalLinks == nil {
+		return ""
+	}
+
+	key := reddit.GoalLinkKey{MatchID: matchID, Minute: minute}
+	if link, ok := m.goalLinks[key]; ok && link != nil {
+		return link.URL
+	}
+	return ""
 }

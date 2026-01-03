@@ -126,17 +126,17 @@ func isHomeTeamEvent(event api.MatchEvent, homeTeamID int) bool {
 
 // renderMatchDetailsPanel renders the right panel with match details and live updates.
 func renderMatchDetailsPanel(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool) string {
-	return renderMatchDetailsPanelFull(width, height, details, liveUpdates, sp, loading, true, nil, false)
+	return renderMatchDetailsPanelFull(width, height, details, liveUpdates, sp, loading, true, nil, false, nil)
 }
 
 // renderMatchDetailsPanelWithPolling renders the right panel with polling spinner support.
-func renderMatchDetailsPanelWithPolling(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, pollingSpinner *RandomCharSpinner, isPolling bool) string {
-	return renderMatchDetailsPanelFull(width, height, details, liveUpdates, sp, loading, true, pollingSpinner, isPolling)
+func renderMatchDetailsPanelWithPolling(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, pollingSpinner *RandomCharSpinner, isPolling bool, goalLinks GoalLinksMap) string {
+	return renderMatchDetailsPanelFull(width, height, details, liveUpdates, sp, loading, true, pollingSpinner, isPolling, goalLinks)
 }
 
 // renderMatchDetailsPanelFull renders the right panel with optional title and polling spinner.
 // Uses Neon design with Golazo red/cyan theme.
-func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, showTitle bool, pollingSpinner *RandomCharSpinner, isPolling bool) string {
+func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, showTitle bool, pollingSpinner *RandomCharSpinner, isPolling bool, goalLinks GoalLinksMap) string {
 	// Neon color constants
 	neonRed := lipgloss.Color("196")
 	neonCyan := lipgloss.Color("51")
@@ -299,6 +299,13 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 
 				// Build content with symbol+type adjacent to center time
 				playerDetails := lipgloss.NewStyle().Foreground(neonWhite).Render(player + assistText)
+
+				// Check for replay link and add indicator
+				replayURL := goalLinks.GetReplayURL(details.ID, goal.Minute)
+				if replayURL != "" {
+					playerDetails += " " + CreateGoalLinkDisplay("", replayURL)
+				}
+
 				goalStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
 				goalContent := buildEventContent(playerDetails, "●", goalStyle.Render("GOAL"), isHome)
 
@@ -600,7 +607,7 @@ func renderSubstitutionWithColors(update string) string {
 	}
 
 	// Split the string into parts (no team suffix anymore - alignment handles team identity)
-	prefix := update[:outIdx]           // "↔ 45' [SUB] "
+	prefix := update[:outIdx]             // "↔ 45' [SUB] "
 	playerOut := update[outIdx+5 : inIdx] // Player going OUT (after {OUT}, before {IN})
 	playerIn := update[inIdx+4:]          // Player coming IN (after {IN} to end)
 

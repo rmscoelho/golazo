@@ -8,6 +8,7 @@ import (
 	"github.com/0xjuanma/golazo/internal/api"
 	"github.com/0xjuanma/golazo/internal/data"
 	"github.com/0xjuanma/golazo/internal/fotmob"
+	"github.com/0xjuanma/golazo/internal/reddit"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -308,5 +309,69 @@ func fetchStatsMatchDetailsFotmob(client *fotmob.Client, matchID int, useMockDat
 		}
 
 		return matchDetailsMsg{details: details}
+	}
+}
+
+// fetchGoalLinks fetches goal replay links from Reddit for all goals in a match.
+// This is called on-demand when match details are loaded/displayed.
+// Links are cached persistently to avoid redundant API calls.
+func fetchGoalLinks(redditClient *reddit.Client, details *api.MatchDetails) tea.Cmd {
+	return func() tea.Msg {
+		if redditClient == nil || details == nil {
+			return goalLinksMsg{matchID: 0, links: nil}
+		}
+
+		// Extract goal events from match details
+		var goals []reddit.GoalInfo
+		for _, event := range details.Events {
+			if event.Type != "goal" {
+				continue
+			}
+
+			scorer := ""
+			if event.Player != nil {
+				scorer = *event.Player
+			}
+
+			// Determine if goal is for home team
+			isHome := event.Team.ID == details.HomeTeam.ID
+
+			// Get scores at the time of goal (approximate)
+			homeScore := 0
+			awayScore := 0
+			if details.HomeScore != nil {
+				homeScore = *details.HomeScore
+			}
+			if details.AwayScore != nil {
+				awayScore = *details.AwayScore
+			}
+
+			// Get match time for date-based Reddit search
+			matchTime := time.Now() // Default to now for live matches
+			if details.MatchTime != nil {
+				matchTime = *details.MatchTime
+			}
+
+			goals = append(goals, reddit.GoalInfo{
+				MatchID:    details.ID,
+				HomeTeam:   details.HomeTeam.Name,
+				AwayTeam:   details.AwayTeam.Name,
+				ScorerName: scorer,
+				Minute:     event.Minute,
+				HomeScore:  homeScore,
+				AwayScore:  awayScore,
+				IsHomeTeam: isHome,
+				MatchTime:  matchTime,
+			})
+		}
+
+		if len(goals) == 0 {
+			return goalLinksMsg{matchID: details.ID, links: nil}
+		}
+
+		// Fetch links for all goals (uses cache internally)
+		links := redditClient.GetGoalLinks(goals)
+
+		return goalLinksMsg{matchID: details.ID, links: links}
 	}
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/0xjuanma/golazo/internal/api"
 	"github.com/0xjuanma/golazo/internal/fotmob"
+	"github.com/0xjuanma/golazo/internal/reddit"
 )
 
 // liveUpdateMsg contains a live update string for match events.
@@ -58,3 +59,10 @@ type pollTickMsg struct {
 // pollDisplayCompleteMsg is sent after minimum display time (1 second) has elapsed.
 // This allows the "Updating..." spinner to be visible for at least 1 second.
 type pollDisplayCompleteMsg struct{}
+
+// goalLinksMsg contains goal replay links fetched from Reddit.
+// Sent after searching r/soccer for Media posts matching goal events.
+type goalLinksMsg struct {
+	matchID int
+	links   map[reddit.GoalLinkKey]*reddit.GoalLink
+}

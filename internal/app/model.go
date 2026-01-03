@@ -5,6 +5,7 @@ import (
 	"github.com/0xjuanma/golazo/internal/api"
 	"github.com/0xjuanma/golazo/internal/fotmob"
 	"github.com/0xjuanma/golazo/internal/notify"
+	"github.com/0xjuanma/golazo/internal/reddit"
 	"github.com/0xjuanma/golazo/internal/ui"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -37,11 +38,11 @@ type model struct {
 	upcomingMatches     []ui.MatchDisplay // Upcoming matches for 1-day stats view (deprecated, kept for compatibility)
 	liveUpcomingMatches []ui.MatchDisplay // Upcoming matches for live view (shown at bottom of left panel)
 	matchDetails        *api.MatchDetails
-	matchDetailsCache map[int]*api.MatchDetails // Cache to avoid repeated API calls
-	liveUpdates       []string
-	lastEvents        []api.MatchEvent
-	lastHomeScore     int // Track last known home score for goal notifications
-	lastAwayScore     int // Track last known away score for goal notifications
+	matchDetailsCache   map[int]*api.MatchDetails // Cache to avoid repeated API calls
+	liveUpdates         []string
+	lastEvents          []api.MatchEvent
+	lastHomeScore       int // Track last known home score for goal notifications
+	lastAwayScore       int // Track last known away score for goal notifications
 
 	// Stats data cache - stores 5 days of data, filtered client-side for Today/3d/5d views
 	statsData *fotmob.StatsData
@@ -84,6 +85,10 @@ type model struct {
 	// API clients
 	fotmobClient *fotmob.Client
 	parser       *fotmob.LiveUpdateParser
+	redditClient *reddit.Client
+
+	// Goal replay links from Reddit (keyed by matchID:minute)
+	goalLinks map[reddit.GoalLinkKey]*reddit.GoalLink
 
 	// Notifications
 	notifier *notify.DesktopNotifier
@@ -142,12 +147,17 @@ func New(useMockData bool) model {
 	upcomingList.FilterInput.PromptStyle = filterPromptStyle
 	upcomingList.FilterInput.Cursor.Style = filterCursorStyle
 
+	// Initialize Reddit client (best-effort, nil if fails)
+	redditClient, _ := reddit.NewClient()
+
 	return model{
 		currentView:         viewMain,
 		matchDetailsCache:   make(map[int]*api.MatchDetails),
 		useMockData:         useMockData,
 		fotmobClient:        fotmob.NewClient(),
 		parser:              fotmob.NewLiveUpdateParser(),
+		redditClient:        redditClient,
+		goalLinks:           make(map[reddit.GoalLinkKey]*reddit.GoalLink),
 		notifier:            notify.NewDesktopNotifier(),
 		spinner:             s,
 		randomSpinner:       randomSpinner,
