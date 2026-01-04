@@ -18,7 +18,7 @@ const (
 	CacheTTL = 7 * 24 * time.Hour // 7 days
 	// NotFoundTTL defines how long to cache "not found" results.
 	// Shorter than CacheTTL since links might appear later.
-	NotFoundTTL = 24 * time.Hour // 1 day
+	NotFoundTTL = 5 * time.Minute // 5 minutes
 	// NotFoundMarker is a special URL indicating "searched but not found"
 	NotFoundMarker = "__NOT_FOUND__"
 )
