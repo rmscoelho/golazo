@@ -520,15 +520,15 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails, 
 				playerDetails += neonDimStyle.Render(fmt.Sprintf(" (%s)", *g.Assist))
 			}
 
-			// Check for replay link and add indicator
+			// Check for replay link and create indicator
 			replayURL := goalLinks.GetReplayURL(details.ID, g.Minute)
 			replayIndicator := ""
 			if replayURL != "" {
-				// Add clickable replay indicator with hyperlink
-				replayIndicator = " " + CreateGoalLinkDisplay("", replayURL)
+				// Create clickable replay indicator with hyperlink
+				replayIndicator = CreateGoalLinkDisplay("", replayURL)
 			}
 
-			goalContent := buildEventContent(playerDetails+replayIndicator, "●", neonScoreStyle.Render("GOAL"), isHome)
+			goalContent := buildEventContent(playerDetails, replayIndicator, "●", neonScoreStyle.Render("GOAL"), isHome)
 			goalLine := renderCenterAlignedEvent(fmt.Sprintf("%d'", g.Minute), goalContent, isHome, contentWidth)
 			lines = append(lines, goalLine)
 		}
@@ -565,7 +565,7 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails, 
 
 			// Build card content with symbol+type adjacent to center time
 			playerDetails := neonValueStyle.Render(player)
-			cardContent := buildEventContent(playerDetails, cardSymbol, cardStyle.Render("CARD"), isHome)
+			cardContent := buildEventContent(playerDetails, "", cardSymbol, cardStyle.Render("CARD"), isHome)
 			cardLine := renderCenterAlignedEvent(fmt.Sprintf("%d'", card.Minute), cardContent, isHome, contentWidth)
 			lines = append(lines, cardLine)
 		}

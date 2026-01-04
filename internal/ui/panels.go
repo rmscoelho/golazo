@@ -67,13 +67,18 @@ var (
 // buildEventContent structures event content with symbol+type adjacent to center time.
 // Home: [Player] [Symbol] [TYPE] ← expands left (type closest to center)
 // Away: [TYPE] [Symbol] [Player] → expands right (type closest to center)
-func buildEventContent(playerDetails string, symbol string, styledTypeLabel string, isHome bool) string {
-	if isHome {
-		// Home: player first, symbol+type at the end (adjacent to center time)
-		return playerDetails + " " + symbol + " " + styledTypeLabel
+func buildEventContent(playerDetails string, replayIndicator string, symbol string, styledTypeLabel string, isHome bool) string {
+	playerWithReplay := playerDetails
+	if replayIndicator != "" {
+		playerWithReplay += " " + replayIndicator
 	}
-	// Away: type+symbol first (adjacent to center time), player at the end
-	return styledTypeLabel + " " + symbol + " " + playerDetails
+
+	if isHome {
+		// Home: player+replay first, symbol+type at the end (adjacent to center time)
+		return playerWithReplay + " " + symbol + " " + styledTypeLabel
+	}
+	// Away: type+symbol first (adjacent to center time), player+replay at the end
+	return styledTypeLabel + " " + symbol + " " + playerWithReplay
 }
 
 // renderCenterAlignedEvent renders an event with time centered and content expanding outward.
@@ -300,14 +305,15 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 				// Build content with symbol+type adjacent to center time
 				playerDetails := lipgloss.NewStyle().Foreground(neonWhite).Render(player + assistText)
 
-				// Check for replay link and add indicator
+				// Check for replay link and create indicator
+				replayIndicator := ""
 				replayURL := goalLinks.GetReplayURL(details.ID, goal.Minute)
 				if replayURL != "" {
-					playerDetails += " " + CreateGoalLinkDisplay("", replayURL)
+					replayIndicator = CreateGoalLinkDisplay("", replayURL)
 				}
 
 				goalStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-				goalContent := buildEventContent(playerDetails, "●", goalStyle.Render("GOAL"), isHome)
+				goalContent := buildEventContent(playerDetails, replayIndicator, "●", goalStyle.Render("GOAL"), isHome)
 
 				goalLine := renderCenterAlignedEvent(fmt.Sprintf("%d'", goal.Minute), goalContent, isHome, contentWidth)
 				content.WriteString(goalLine)
@@ -354,7 +360,7 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 
 				// Build content with symbol+type adjacent to center time
 				playerDetails := lipgloss.NewStyle().Foreground(neonWhite).Render(player)
-				cardContent := buildEventContent(playerDetails, cardSymbol, cardStyle.Render("CARD"), isHome)
+				cardContent := buildEventContent(playerDetails, "", cardSymbol, cardStyle.Render("CARD"), isHome)
 
 				cardLine := renderCenterAlignedEvent(fmt.Sprintf("%d'", card.Minute), cardContent, isHome, contentWidth)
 				content.WriteString(cardLine)
@@ -529,22 +535,22 @@ func renderStyledLiveUpdate(update string, contentWidth int) string {
 		playerDetails, _ := extractPlayerAndType(contentWithoutMinute, "[GOAL]")
 		styledType := applyGradientToText("GOAL", startColor, endColor)
 		styledPlayer := whiteStyle.Render(playerDetails)
-		styledContent = buildEventContent(styledPlayer, symbol, styledType, isHome)
+		styledContent = buildEventContent(styledPlayer, "", symbol, styledType, isHome)
 	case "▪": // Yellow card
 		neonYellow := lipgloss.Color("226")
 		cardStyle := lipgloss.NewStyle().Foreground(neonYellow).Bold(true)
 		playerDetails, _ := extractPlayerAndType(contentWithoutMinute, "[CARD]")
-		styledContent = buildEventContent(whiteStyle.Render(playerDetails), symbol, cardStyle.Render("CARD"), isHome)
+		styledContent = buildEventContent(whiteStyle.Render(playerDetails), "", symbol, cardStyle.Render("CARD"), isHome)
 	case "■": // Red card
 		cardStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
 		playerDetails, _ := extractPlayerAndType(contentWithoutMinute, "[CARD]")
-		styledContent = buildEventContent(whiteStyle.Render(playerDetails), symbol, cardStyle.Render("CARD"), isHome)
+		styledContent = buildEventContent(whiteStyle.Render(playerDetails), "", symbol, cardStyle.Render("CARD"), isHome)
 	case "↔": // Substitution - color coded players
 		styledContent = renderSubstitutionWithColorsNoMinute(contentWithoutMinute, isHome)
 	case "·": // Other - dim symbol and text
 		dimStyle := lipgloss.NewStyle().Foreground(neonDim)
 		playerDetails, _ := extractPlayerAndType(contentWithoutMinute, "")
-		styledContent = buildEventContent(dimStyle.Render(playerDetails), symbol, "", isHome)
+		styledContent = buildEventContent(dimStyle.Render(playerDetails), "", symbol, "", isHome)
 	default:
 		// Unknown prefix, render as-is with default style
 		styledContent = whiteStyle.Render(contentWithoutMinute)
@@ -723,7 +729,7 @@ func renderSubstitutionWithColorsNoMinute(update string, isHome bool) string {
 	// Format player details: ←PlayerIn →PlayerOut
 	playerDetails := inStyle.Render("←"+playerIn) + " " + outStyle.Render("→"+playerOut)
 
-	return buildEventContent(playerDetails, "↔", dimStyle.Render("SUB"), isHome)
+	return buildEventContent(playerDetails, "", "↔", dimStyle.Render("SUB"), isHome)
 }
 
 func formatMatchEventForDisplay(event api.MatchEvent, homeTeamID int, contentWidth int) string {
@@ -745,7 +751,7 @@ func formatMatchEventForDisplay(event api.MatchEvent, homeTeamID int, contentWid
 		}
 		goalStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
 		playerDetails := whiteStyle.Render(playerName + assistText)
-		eventContent = buildEventContent(playerDetails, "●", goalStyle.Render("GOAL"), isHome)
+		eventContent = buildEventContent(playerDetails, "", "●", goalStyle.Render("GOAL"), isHome)
 	case "card":
 		playerName := "Unknown"
 		if event.Player != nil {
@@ -762,7 +768,7 @@ func formatMatchEventForDisplay(event api.MatchEvent, homeTeamID int, contentWid
 			cardStyle = neonRedCardStyle
 		}
 		playerDetails := whiteStyle.Render(playerName)
-		eventContent = buildEventContent(playerDetails, cardSymbol, cardStyle.Render("CARD"), isHome)
+		eventContent = buildEventContent(playerDetails, "", cardSymbol, cardStyle.Render("CARD"), isHome)
 	case "substitution":
 		playerName := "Unknown"
 		if event.Player != nil {
@@ -770,7 +776,7 @@ func formatMatchEventForDisplay(event api.MatchEvent, homeTeamID int, contentWid
 		}
 		subStyle := lipgloss.NewStyle().Foreground(neonDim)
 		playerDetails := whiteStyle.Render(playerName)
-		eventContent = buildEventContent(playerDetails, "↔", subStyle.Render("SUB"), isHome)
+		eventContent = buildEventContent(playerDetails, "", "↔", subStyle.Render("SUB"), isHome)
 	default:
 		playerName := ""
 		if event.Player != nil {
