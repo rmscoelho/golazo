@@ -97,10 +97,6 @@ type model struct {
 	// Goal replay links from Reddit (keyed by matchID:minute)
 	goalLinks map[reddit.GoalLinkKey]*reddit.GoalLink
 
-	// Pending goals to fetch links for (keyed by matchID:minute)
-	// Stores full GoalInfo for efficient background processing
-	pendingGoals map[reddit.GoalLinkKey]reddit.GoalInfo
-
 	// Notifications
 	notifier *notify.DesktopNotifier
 }
@@ -189,7 +185,6 @@ func New(useMockData bool, debugMode bool) model {
 		parser:              fotmob.NewLiveUpdateParser(),
 		redditClient:        redditClient,
 		goalLinks:           make(map[reddit.GoalLinkKey]*reddit.GoalLink),
-		pendingGoals:        make(map[reddit.GoalLinkKey]reddit.GoalInfo),
 		notifier:            notify.NewDesktopNotifier(),
 		spinner:             s,
 		randomSpinner:       randomSpinner,

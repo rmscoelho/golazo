@@ -15,13 +15,13 @@ import (
 type DebugLogger func(message string)
 
 // Fetcher defines the interface for fetching data from Reddit.
-// This allows for easy swapping between public JSON API and OAuth API.
+// Uses Reddit's public JSON API for goal link retrieval.
 type Fetcher interface {
 	Search(query string, limit int, matchTime time.Time) ([]SearchResult, error)
 }
 
 // PublicJSONFetcher uses Reddit's public JSON endpoints (no auth required).
-// Note: Has stricter rate limits than OAuth API.
+// Uses Reddit's public JSON API with rate limiting.
 type PublicJSONFetcher struct {
 	httpClient  *http.Client
 	userAgent   string
@@ -84,13 +84,9 @@ func (r *rateLimiter) getNextUserAgent() string {
 	return agent
 }
 
-// User agents to rotate through to reduce bot detection
+// Simple user agent exactly like main branch
 var userAgents = []string{
-	"golazo:v1.0.0 (by /u/golazo_app)", // Keep original for backwards compatibility
-	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+	"golazo:v1.0.0 (by /u/golazo_app)",
 }
 
 // NewPublicJSONFetcher creates a new fetcher using public Reddit JSON API.
@@ -101,7 +97,7 @@ func NewPublicJSONFetcher() *PublicJSONFetcher {
 		},
 		// Reddit requires a descriptive User-Agent
 		userAgent:   userAgents[0],     // Start with first agent
-		rateLimiter: newRateLimiter(5), // Reduced to 5 requests per minute to reduce CAPTCHA blocking
+		rateLimiter: newRateLimiter(5), // Reasonable: 5 requests per minute
 	}
 }
 
@@ -130,20 +126,8 @@ func (f *PublicJSONFetcher) Search(query string, limit int, matchTime time.Time)
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	// Use rotating user agents to reduce bot detection
+	// Simple user agent exactly like main branch
 	req.Header.Set("User-Agent", f.rateLimiter.getNextUserAgent())
-
-	// Add realistic browser headers to further reduce CAPTCHA blocking
-	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9,*;q=0.5")
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-	req.Header.Set("DNT", "1")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Sec-Fetch-Dest", "document")
-	req.Header.Set("Sec-Fetch-Mode", "navigate")
-	req.Header.Set("Sec-Fetch-Site", "none")
-	req.Header.Set("Cache-Control", "max-age=0")
 
 	resp, err := f.httpClient.Do(req)
 	if err != nil {
@@ -190,12 +174,11 @@ func (f *PublicJSONFetcher) Search(query string, limit int, matchTime time.Time)
 }
 
 // Client provides goal replay link fetching from Reddit r/soccer.
-// Supports both OAuth API (preferred) and public JSON API (fallback).
+// Uses Reddit's public JSON API for goal link retrieval.
 type Client struct {
-	oauthFetcher  *OAuthClient // Preferred: higher rate limits, no CAPTCHAs
-	publicFetcher Fetcher      // Fallback: public API with limitations
-	cache         *GoalLinkCache
-	debugLogger   DebugLogger  // Optional debug logger function
+	fetcher     Fetcher        // Reddit public API fetcher
+	cache       *GoalLinkCache
+	debugLogger DebugLogger    // Optional debug logger function
 }
 
 // debugLog is a helper method to safely call the debug logger if it exists
@@ -205,62 +188,42 @@ func (c *Client) debugLog(message string) {
 	}
 }
 
-// NewClient creates a new Reddit client with OAuth (preferred) or public API (fallback).
+// NewClient creates a new Reddit client with the default public JSON fetcher.
 func NewClient() (*Client, error) {
 	cache, err := NewGoalLinkCache()
 	if err != nil {
 		return nil, fmt.Errorf("create cache: %w", err)
 	}
 
-	// Try OAuth first (higher rate limits, no CAPTCHAs)
-	oauthClient, err := NewOAuthClient()
-	if err != nil {
-		return nil, fmt.Errorf("OAuth client initialization failed: %w", err)
-	}
-
-	// Always initialize public API as fallback
-	publicFetcher := NewPublicJSONFetcher()
-
 	return &Client{
-		oauthFetcher:  oauthClient, // May be nil if OAuth not configured
-		publicFetcher: publicFetcher,
-		cache:         cache,
-		debugLogger:   nil,         // No debug logger by default
+		fetcher:   NewPublicJSONFetcher(),
+		cache:     cache,
 	}, nil
 }
 
 // NewClientWithDebug creates a new Reddit client with debug logging enabled.
+// Uses public JSON API like main branch.
 func NewClientWithDebug(debugLogger DebugLogger) (*Client, error) {
 	cache, err := NewGoalLinkCache()
 	if err != nil {
 		return nil, fmt.Errorf("create cache: %w", err)
 	}
 
-	// Try OAuth first (higher rate limits, no CAPTCHAs)
-	oauthClient, err := NewOAuthClientWithDebug(debugLogger)
-	if err != nil {
-		return nil, fmt.Errorf("OAuth client initialization failed: %w", err)
-	}
-
-	// Always initialize public API as fallback
-	publicFetcher := NewPublicJSONFetcher()
+	debugLogger("Initializing Reddit client with public API")
 
 	return &Client{
-		oauthFetcher:  oauthClient, // May be nil if OAuth not configured
-		publicFetcher: publicFetcher,
-		cache:         cache,
-		debugLogger:   debugLogger,
+		fetcher:     NewPublicJSONFetcher(),
+		cache:       cache,
+		debugLogger: debugLogger,
 	}, nil
 }
 
 // NewClientWithFetcher creates a new Reddit client with a custom fetcher.
-// Use this for testing or when switching to OAuth API.
+// Use this for testing with custom fetchers.
 func NewClientWithFetcher(fetcher Fetcher, cache *GoalLinkCache) *Client {
 	return &Client{
-		oauthFetcher:  nil, // No OAuth in test mode
-		publicFetcher: fetcher,
-		cache:         cache,
-		debugLogger:   nil,
+		fetcher: fetcher,
+		cache:   cache,
 	}
 }
 
@@ -297,10 +260,11 @@ func (c *Client) GoalLink(goal GoalInfo) (*GoalLink, error) {
 }
 
 // BatchSize is the maximum number of goals to fetch per batch.
-const BatchSize = 5
+// Reduced to make requests even more spaced out.
+const BatchSize = 3
 
 // BatchDelay is the delay between batches to avoid rate limiting.
-const BatchDelay = 2 * time.Second
+const BatchDelay = 5 * time.Second
 
 // GoalLinks retrieves links for multiple goals, using cache where available.
 // Goals are de-duplicated and batched to avoid rate limiting.
@@ -332,7 +296,7 @@ func (c *Client) GoalLinks(goals []GoalInfo) map[GoalLinkKey]*GoalLink {
 		uncachedGoals = append(uncachedGoals, goal)
 	}
 
-	// Fetch uncached goals in batches
+	// Fetch uncached goals in batches with conservative delays
 	for i := 0; i < len(uncachedGoals); i += BatchSize {
 		// Add delay between batches (not before first batch)
 		if i > 0 {
@@ -357,66 +321,59 @@ func (c *Client) GoalLinks(goals []GoalInfo) map[GoalLinkKey]*GoalLink {
 	return results
 }
 
-// searchForGoal searches Reddit for a specific goal.
-// Uses OAuth API if available (preferred), falls back to public API with retry logic.
+// searchForGoal searches Reddit for a specific goal with conservative retry logic.
 func (c *Client) searchForGoal(goal GoalInfo) (*GoalLink, error) {
-	// Try OAuth API first if available (no CAPTCHA issues, higher rate limits)
-	if c.oauthFetcher != nil && c.oauthFetcher.IsAvailable() {
-		c.debugLog(fmt.Sprintf("Using OAuth API for goal %d:%d", goal.MatchID, goal.Minute))
-		result, err := c.searchForGoalOnce(goal, c.oauthFetcher)
-		if err != nil {
-			c.debugLog(fmt.Sprintf("OAuth API failed for goal %d:%d: %v", goal.MatchID, goal.Minute, err))
-			return nil, err
-		}
-		return result, nil
-	}
-
-	// Fall back to public API with retry logic for CAPTCHA handling
-	c.debugLog(fmt.Sprintf("Using public API for goal %d:%d (OAuth not available)", goal.MatchID, goal.Minute))
-	maxRetries := 3
-	baseDelay := 30 * time.Second
+	// Conservative retry logic - Reddit is very aggressive with CAPTCHA detection
+	maxRetries := 2  // Reduced from 3
+	baseDelay := 60 * time.Second // Increased delay between retries
 
 	for attempt := 0; attempt < maxRetries; attempt++ {
 		if attempt > 0 {
+			// Exponential backoff: 30s, 60s, 120s
 			delay := time.Duration(attempt) * baseDelay
-			c.debugLog(fmt.Sprintf("Retrying goal %d:%d in %v (attempt %d/%d)", goal.MatchID, goal.Minute, delay, attempt+1, maxRetries))
 			time.Sleep(delay)
 		}
 
-		result, err := c.searchForGoalOnce(goal, c.publicFetcher)
+		result, err := c.searchForGoalOnce(goal)
 		if err == nil {
 			return result, nil
 		}
 
-		// Check if this is a CAPTCHA/rate limit error that we should retry
+		// Check if this is a CAPTCHA/rate limit error
 		if strings.Contains(err.Error(), "CAPTCHA") ||
 			strings.Contains(err.Error(), "blocking requests") ||
 			strings.Contains(err.Error(), "rate limit") ||
 			strings.Contains(err.Error(), "HTML instead of JSON") {
-			c.debugLog(fmt.Sprintf("Reddit API error for goal %d:%d (attempt %d/%d): %v", goal.MatchID, goal.Minute, attempt+1, maxRetries, err))
-			if attempt < maxRetries-1 {
-				continue
-			}
-			c.debugLog(fmt.Sprintf("Max retries exceeded for goal %d:%d: %v", goal.MatchID, goal.Minute, err))
+			// Don't retry CAPTCHA errors - Reddit is very aggressive, just give up
+			c.debugLog(fmt.Sprintf("Reddit blocking goal %d:%d: giving up immediately", goal.MatchID, goal.Minute))
+			return nil, err
 		}
 
 		// For other errors or if we've exhausted retries, return the error
-		c.debugLog(fmt.Sprintf("Non-retryable error for goal %d:%d: %v", goal.MatchID, goal.Minute, err))
 		return nil, err
 	}
 
 	return nil, nil // No match found after all retries
 }
 
-// searchForGoalOnce performs a single search attempt for a goal using the specified fetcher.
-func (c *Client) searchForGoalOnce(goal GoalInfo, fetcher Fetcher) (*GoalLink, error) {
+// searchForGoalOnce performs a single search attempt for a goal.
+func (c *Client) searchForGoalOnce(goal GoalInfo) (*GoalLink, error) {
 	// Strategy 1: Both teams + minute (most specific, try first)
 	query1 := fmt.Sprintf("%s %s %d'", goal.HomeTeam, goal.AwayTeam, goal.Minute)
-	results1, err := fetcher.Search(query1, 15, goal.MatchTime)
+	c.debugLog(fmt.Sprintf("Reddit search query: '%s' for goal %d:%d (%s vs %s)",
+		query1, goal.MatchID, goal.Minute, goal.HomeTeam, goal.AwayTeam))
+	results1, err := c.fetcher.Search(query1, 15, goal.MatchTime)
+	if err != nil {
+		c.debugLog(fmt.Sprintf("Reddit search failed for query '%s': %v", query1, err))
+	} else {
+		c.debugLog(fmt.Sprintf("Reddit search returned %d results for query '%s'", len(results1), query1))
+	}
 	if err == nil {
 		// Check if we found a good match with the first strategy
 		match := findBestMatch(results1, goal)
+		c.debugLog(fmt.Sprintf("findBestMatch result for goal %d:%d: %v", goal.MatchID, goal.Minute, match != nil))
 		if match != nil {
+			c.debugLog(fmt.Sprintf("Found goal link for %d:%d: %s", goal.MatchID, goal.Minute, match.URL))
 			// Found a match, return it immediately to avoid additional API calls
 			return &GoalLink{
 				MatchID:   goal.MatchID,
@@ -443,8 +400,12 @@ func (c *Client) searchForGoalOnce(goal GoalInfo, fetcher Fetcher) (*GoalLink, e
 		scoringTeam = goal.HomeTeam
 	}
 	query2 := fmt.Sprintf("%s %d'", scoringTeam, goal.Minute)
-	results2, err := fetcher.Search(query2, 15, goal.MatchTime)
-	if err == nil {
+	c.debugLog(fmt.Sprintf("Reddit search query (strategy 2): '%s' for goal %d:%d", query2, goal.MatchID, goal.Minute))
+	results2, err := c.fetcher.Search(query2, 15, goal.MatchTime)
+	if err != nil {
+		c.debugLog(fmt.Sprintf("Reddit search failed for strategy 2 query '%s': %v", query2, err))
+	} else {
+		c.debugLog(fmt.Sprintf("Reddit search returned %d results for strategy 2 query '%s'", len(results2), query2))
 		allResults = append(allResults, results2...)
 	}
 
