@@ -5,13 +5,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Neon colors used across delegates.
+// Use consolidated neon colors from neon_styles.go
+// These aliases are kept for backward compatibility but reference the main color definitions
 var (
-	delegateNeonRed   = lipgloss.Color("196")
-	delegateNeonCyan  = lipgloss.Color("51")
-	delegateNeonWhite = lipgloss.Color("255")
-	delegateNeonGray  = lipgloss.Color("244")
-	delegateNeonDim   = lipgloss.Color("238")
+	delegateNeonRed   = neonRed
+	delegateNeonCyan  = neonCyan
+	delegateNeonWhite = neonWhite
+	delegateNeonGray  = neonDim
+	delegateNeonDim   = neonDimGray
 )
 
 // NewMatchListDelegate creates a custom list delegate for match items.
@@ -23,12 +24,7 @@ func NewMatchListDelegate() list.DefaultDelegate {
 	// Set height to 3 lines: title (1) + description with KO time (2)
 	d.SetHeight(3)
 
-	// Neon colors
-	neonRed := lipgloss.Color("196")
-	neonCyan := lipgloss.Color("51")
-	neonWhite := lipgloss.Color("255")
-	neonGray := lipgloss.Color("244")
-	neonDim := lipgloss.Color("238")
+	// Use consolidated neon colors from neon_styles.go
 
 	// Selected items: Neon red title, cyan description, red left border
 	d.Styles.SelectedTitle = lipgloss.NewStyle().

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Goal Link Indicator** - Replaced 📺 emoji with [▶REPLAY] text indicator for better terminal compatibility
 - **Goal Link Alignment** - Positioned replay links between player name and goal symbol for proper home/away expansion
+- **Goal Display** - Removed assist information from goal events, showing only the scorer's name
 
 ### Fixed
 - **Goal Link Cache Logic** - Improved caching behavior for goal replay links and fixed cache expiration logic for not-found

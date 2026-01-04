@@ -15,70 +15,75 @@ var (
 	// Panel styles - Neon design with thick red borders
 	panelStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("196")). // neon red
+			BorderForeground(neonRed).
 			Padding(0, 1)
 
 	// Header style - Neon with red accent
 	panelTitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("196")). // neon red
+			Foreground(neonRed).
 			Bold(true).
 			PaddingBottom(0).
 			BorderBottom(true).
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("239")). // dark dim
+			BorderForeground(neonDarkDim).
 			MarginBottom(0)
 
 	// Selection styling - Neon with red highlight
 	matchListItemStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("255")). // neon white
+				Foreground(neonWhite).
 				Padding(0, 1)
 
 	matchListItemSelectedStyle = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("196")). // neon red
+					Foreground(neonRed).
 					Bold(true).
 					Padding(0, 1)
 
 	// Match details styles - Neon typography
 	matchTitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255")). // neon white
+			Foreground(neonWhite).
 			Bold(true).
 			MarginBottom(0)
 
 	matchScoreStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("196")). // neon red for scores
+			Foreground(neonRed).
 			Bold(true).
 			Margin(0, 0).
-			Background(lipgloss.Color("0")).
+			Background(neonBlack).
 			Padding(0, 0)
 
 	matchStatusStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("196")). // neon red for live
+				Foreground(neonRed).
 				Bold(true)
 
 	// Live update styles - Neon
 	liveUpdateStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255")). // neon white
+			Foreground(neonWhite).
 			Padding(0, 0)
 
 	spinnerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("51")) // neon cyan
+			Foreground(neonCyan)
 )
 
 // buildEventContent structures event content with symbol+type adjacent to center time.
 // Home: [Player] [Symbol] [TYPE] ← expands left (type closest to center)
 // Away: [TYPE] [Symbol] [Player] → expands right (type closest to center)
 func buildEventContent(playerDetails string, replayIndicator string, symbol string, styledTypeLabel string, isHome bool) string {
-	playerWithReplay := playerDetails
-	if replayIndicator != "" {
-		playerWithReplay += " " + replayIndicator
-	}
-
 	if isHome {
-		// Home: player+replay first, symbol+type at the end (adjacent to center time)
-		return playerWithReplay + " " + symbol + " " + styledTypeLabel
+		// Home: player first, then replay (if exists), then symbol+type at the end (adjacent to center time)
+		// Format: [PLAYER] [▶REPLAY] ● GOAL
+		result := playerDetails
+		if replayIndicator != "" {
+			result += " " + replayIndicator
+		}
+		return result + " " + symbol + " " + styledTypeLabel
 	}
-	// Away: type+symbol first (adjacent to center time), player+replay at the end
-	return styledTypeLabel + " " + symbol + " " + playerWithReplay
+	// Away: type+symbol first (adjacent to center time), then replay (if exists), then player at the end
+	// Format: GOAL ● [▶REPLAY] [PLAYER]
+	result := styledTypeLabel + " " + symbol
+	if replayIndicator != "" {
+		result += " " + replayIndicator
+	}
+	return result + " " + playerDetails
 }
 
 // renderCenterAlignedEvent renders an event with time centered and content expanding outward.
@@ -142,11 +147,7 @@ func renderMatchDetailsPanelWithPolling(width, height int, details *api.MatchDet
 // renderMatchDetailsPanelFull renders the right panel with optional title and polling spinner.
 // Uses Neon design with Golazo red/cyan theme.
 func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, liveUpdates []string, sp spinner.Model, loading bool, showTitle bool, pollingSpinner *RandomCharSpinner, isPolling bool, goalLinks GoalLinksMap) string {
-	// Neon color constants
-	neonRed := lipgloss.Color("196")
-	neonCyan := lipgloss.Color("51")
-	neonDim := lipgloss.Color("244")
-	neonWhite := lipgloss.Color("255")
+	// Use consolidated neon colors from neon_styles.go
 
 	// Details panel - no border, just padding for clean look
 	detailsPanelStyle := lipgloss.NewStyle().
@@ -285,7 +286,7 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 				PaddingTop(0).
 				BorderBottom(true).
 				BorderStyle(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("239")).
+				BorderForeground(neonDarkDim).
 				Width(width - 6).
 				Render("Goals")
 			content.WriteString(goalsTitle)
@@ -296,14 +297,10 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 				if goal.Player != nil {
 					player = *goal.Player
 				}
-				assistText := ""
-				if goal.Assist != nil && *goal.Assist != "" {
-					assistText = fmt.Sprintf(" (%s)", *goal.Assist)
-				}
 				isHome := isHomeTeamEvent(goal, details.HomeTeam.ID)
 
 				// Build content with symbol+type adjacent to center time
-				playerDetails := lipgloss.NewStyle().Foreground(neonWhite).Render(player + assistText)
+				playerDetails := lipgloss.NewStyle().Foreground(neonWhite).Render(player)
 
 				// Check for replay link and create indicator
 				replayIndicator := ""
@@ -337,7 +334,7 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 				PaddingTop(0).
 				BorderBottom(true).
 				BorderStyle(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("239")).
+				BorderForeground(neonDarkDim).
 				Width(width - 6).
 				Render("Cards")
 			content.WriteString(cardsTitle)
@@ -376,7 +373,7 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 			PaddingTop(0).
 			BorderBottom(true).
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("239")).
+			BorderForeground(neonDarkDim).
 			Width(width - 6).
 			Render("All Events")
 		content.WriteString(eventsTitle)
@@ -416,7 +413,7 @@ func renderMatchDetailsPanelFull(width, height int, details *api.MatchDetails, l
 			PaddingTop(0).
 			BorderBottom(true).
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("239")).
+			BorderForeground(neonDarkDim).
 			Width(width - 6).
 			Render(titleText)
 		content.WriteString(updatesTitle)
@@ -521,10 +518,7 @@ func renderStyledLiveUpdate(update string, contentWidth int) string {
 	runes := []rune(contentWithoutMinute)
 	symbol := string(runes[0])
 
-	// Neon colors matching theme
-	neonRed := lipgloss.Color("196")
-	neonDim := lipgloss.Color("244")
-	neonWhite := lipgloss.Color("255")
+	// Use consolidated neon colors from neon_styles.go
 	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
 
 	var styledContent string
@@ -537,7 +531,6 @@ func renderStyledLiveUpdate(update string, contentWidth int) string {
 		styledPlayer := whiteStyle.Render(playerDetails)
 		styledContent = buildEventContent(styledPlayer, "", symbol, styledType, isHome)
 	case "▪": // Yellow card
-		neonYellow := lipgloss.Color("226")
 		cardStyle := lipgloss.NewStyle().Foreground(neonYellow).Bold(true)
 		playerDetails, _ := extractPlayerAndType(contentWithoutMinute, "[CARD]")
 		styledContent = buildEventContent(whiteStyle.Render(playerDetails), "", symbol, cardStyle.Render("CARD"), isHome)
@@ -593,11 +586,7 @@ func extractPlayerAndType(content string, typeMarker string) (string, string) {
 // Red → arrow = player going OUT (leaving the pitch)
 // Format: ↔ 45' [SUB] {OUT}PlayerOut {IN}PlayerIn
 func renderSubstitutionWithColors(update string) string {
-	neonRed := lipgloss.Color("196")
-	neonCyan := lipgloss.Color("51")
-	neonDim := lipgloss.Color("244")
-	neonWhite := lipgloss.Color("255")
-
+	// Use consolidated neon colors from neon_styles.go
 	dimStyle := lipgloss.NewStyle().Foreground(neonDim)
 	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
 	outStyle := lipgloss.NewStyle().Foreground(neonRed) // Red = going OUT
@@ -633,7 +622,7 @@ func renderSubstitutionWithColors(update string) string {
 // renderCardWithColor renders a card event with color on symbol, time, and [CARD] label.
 // The rest of the text (player, team) is rendered in white.
 func renderCardWithColor(update string, color lipgloss.Color) string {
-	neonWhite := lipgloss.Color("255")
+	// Use consolidated neon colors from neon_styles.go
 	colorStyle := lipgloss.NewStyle().Foreground(color).Bold(true)
 	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
 
@@ -659,7 +648,7 @@ func renderGoalWithGradient(update string) string {
 	startColor, _ := colorful.Hex(constants.GradientStartColor) // Cyan
 	endColor, _ := colorful.Hex(constants.GradientEndColor)     // Red
 
-	neonWhite := lipgloss.Color("255")
+	// Use consolidated neon colors from neon_styles.go
 	whiteStyle := lipgloss.NewStyle().Foreground(neonWhite)
 
 	// Find [GOAL] in the string and apply gradient to it
@@ -708,10 +697,7 @@ func applyGradientToText(text string, startColor, endColor colorful.Color) strin
 // Format: "↔ [SUB] {OUT}PlayerOut {IN}PlayerIn" - minute already extracted
 // Uses buildEventContent for symbol+type adjacent to center alignment.
 func renderSubstitutionWithColorsNoMinute(update string, isHome bool) string {
-	neonRed := lipgloss.Color("196")
-	neonCyan := lipgloss.Color("51")
-	neonDim := lipgloss.Color("244")
-
+	// Use consolidated neon colors from neon_styles.go
 	dimStyle := lipgloss.NewStyle().Foreground(neonDim)
 	outStyle := lipgloss.NewStyle().Foreground(neonRed)
 	inStyle := lipgloss.NewStyle().Foreground(neonCyan)
@@ -745,12 +731,8 @@ func formatMatchEventForDisplay(event api.MatchEvent, homeTeamID int, contentWid
 		if event.Player != nil {
 			playerName = *event.Player
 		}
-		assistText := ""
-		if event.Assist != nil && *event.Assist != "" {
-			assistText = fmt.Sprintf(" (%s)", *event.Assist)
-		}
 		goalStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
-		playerDetails := whiteStyle.Render(playerName + assistText)
+		playerDetails := whiteStyle.Render(playerName)
 		eventContent = buildEventContent(playerDetails, "", "●", goalStyle.Render("GOAL"), isHome)
 	case "card":
 		playerName := "Unknown"
@@ -832,7 +814,7 @@ func renderLargeScore(homeScore, awayScore int, width int) string {
 
 	// Build 3-line score display
 	var lines []string
-	neonRed := lipgloss.Color("196")
+	// Use consolidated neon colors from neon_styles.go
 	scoreStyle := lipgloss.NewStyle().Foreground(neonRed).Bold(true)
 
 	for i := 0; i < 3; i++ {

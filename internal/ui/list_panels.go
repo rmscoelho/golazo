@@ -469,7 +469,7 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails, 
 		lines = append(lines, largeScore)
 	} else {
 		vsText := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("244")).
+			Foreground(neonDim).
 			Width(contentWidth).
 			Align(lipgloss.Center).
 			Render("vs")
@@ -516,9 +516,6 @@ func renderStatsMatchDetailsPanel(width, height int, details *api.MatchDetails, 
 				player = *g.Player
 			}
 			playerDetails := neonValueStyle.Render(player)
-			if g.Assist != nil && *g.Assist != "" {
-				playerDetails += neonDimStyle.Render(fmt.Sprintf(" (%s)", *g.Assist))
-			}
 
 			// Check for replay link and create indicator
 			replayURL := goalLinks.GetReplayURL(details.ID, g.Minute)
@@ -726,7 +723,7 @@ func renderStatComparison(label, homeVal, awayVal string, maxWidth int) string {
 	}
 	awayEmpty := halfBar - awayFilled
 	awayBar := strings.Repeat("▪", awayFilled) + strings.Repeat(" ", awayEmpty)
-	awayBarStyled := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(awayBar)
+	awayBarStyled := lipgloss.NewStyle().Foreground(neonGray).Render(awayBar)
 
 	// Line 1: Label (centered via parent, no width constraint)
 	labelStyle := lipgloss.NewStyle().Foreground(neonDim)
