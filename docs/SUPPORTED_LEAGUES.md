@@ -57,12 +57,12 @@ Golazo supports **60+ leagues and competitions**. Customize your selection in Se
 
 | | Cup |
 |---|-----|
-| 🇨🇴 | Copa Colombia |
 | 🇪🇸 | Copa del Rey |
 | 🇮🇹 | Coppa Italia |
 | 🇫🇷 | Coupe de France |
 | 🇩🇪 | DFB Pokal |
 | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | FA Cup |
+| 🇪🇸 | Supercopa de España |
 | 🇩🇪 | Women's DFB Pokal |
 
 ## South America
@@ -72,6 +72,7 @@ Golazo supports **60+ leagues and competitions**. Customize your selection in Se
 | 🇧🇷 | Brasileirão Série A |
 | 🇧🇷 | Brasileirão Série B |
 | 🏆 | Copa America |
+| 🇨🇴 | Copa Colombia |
 | 🏆 | Copa Libertadores |
 | 🏆 | Copa Sudamericana |
 | 🇦🇷 | Liga Profesional |

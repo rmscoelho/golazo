@@ -67,6 +67,7 @@ var AllSupportedLeagues = map[string][]LeagueInfo{
 		{ID: 9375, Name: "Women's UEFA Champions League", Country: "Europe"},
 		// Domestic Cups
 		{ID: 138, Name: "Copa del Rey", Country: "Spain"},
+		{ID: 139, Name: "Supercopa de España", Country: "Spain"},
 		{ID: 132, Name: "FA Cup", Country: "England"},
 		{ID: 209, Name: "DFB Pokal", Country: "Germany"},
 		{ID: 10650, Name: "Women's DFB Pokal", Country: "Germany"},
