@@ -4,7 +4,7 @@ Set Width 1000
 Set Height 700
 Set Theme "3024 Night"
 
-Type "./golazo --mock"
+Type "./golazo-demo"
 Enter
 Sleep 500ms
 
@@ -14,7 +14,8 @@ Sleep 300ms
 Down
 Sleep 300ms
 Up
-Sleep 500ms
+Sleep 300ms
+
 
 # Main view, select live
 Enter

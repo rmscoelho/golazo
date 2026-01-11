@@ -8,11 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.14.0] - 2026-01-10
+
+### Added
 - **South American Leagues** - Added support for Chilean Primera Division, Peruvian Liga 1, Ecuadorian Serie A, and Uruguayan Primera Division
 
 ### Changed
 
 ### Fixed
+- **Duplicate Matches** - Fixed duplicate matches appearing in the finished matches list by adding deduplication by match ID
 - **League IDs** - Corrected a few league IDs that were outdated
 
 ## [0.13.1] - 2026-01-08
