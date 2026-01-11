@@ -6,129 +6,135 @@ Golazo supports **60+ leagues and competitions**. Customize your selection in Se
 
 ## Europe — Top Leagues
 
-| | League |
-|---|--------|
-| 🇩🇪 | Bundesliga |
-| 🇩🇪 | Frauen-Bundesliga |
-| 🇪🇸 | La Liga |
-| 🇪🇸 | Liga F |
-| 🇫🇷 | Ligue 1 |
+| | League                  |
+|---|-------------------------|
+| 🇩🇪 | Bundesliga              |
+| 🇩🇪 | Frauen-Bundesliga       |
+| 🇪🇸 | La Liga                 |
+| 🇪🇸 | Liga F                  |
+| 🇫🇷 | Ligue 1                 |
 | 🇫🇷 | Première Ligue Féminine |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Premier League |
-| 🇮🇹 | Serie A |
-| 🇮🇹 | Serie A Femminile |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Women's Super League |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Premier League          |
+| 🇮🇹 | Serie A                 |
+| 🇮🇹 | Serie A Femminile       |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | Women's Super League    |
 
 ## Europe — Other Leagues
 
-| | League |
-|---|--------|
-| 🇸🇪 | Allsvenskan |
-| 🇦🇹 | Austrian Bundesliga |
-| 🇧🇪 | Belgian Pro League |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL Championship |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL League One |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL League Two |
-| 🇵🇱 | Ekstraklasa |
-| 🇳🇱 | Eredivisie |
-| 🇮🇪 | League of Ireland First Division |
+| | League                             |
+|---|------------------------------------|
+| 🇸🇪 | Allsvenskan                        |
+| 🇦🇹 | Austrian Bundesliga                |
+| 🇧🇪 | Belgian Pro League                 |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL Championship                   |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL League One                     |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | EFL League Two                     |
+| 🇵🇱 | Ekstraklasa                        |
+| 🇳🇱 | Eredivisie                         |
+| 🇮🇪 | League of Ireland First Division   |
 | 🇮🇪 | League of Ireland Premier Division |
-| 🇵🇹 | Primeira Liga |
-| 🇷🇺 | Russian Premier League |
-| 🏴󠁧󠁢󠁳󠁣󠁴󠁿 | Scottish Premiership |
-| 🇬🇷 | Super League 1 |
-| 🇩🇰 | Superligaen |
-| 🇹🇷 | Süper Lig |
-| 🇨🇭 | Swiss Super League |
-| 🇺🇦 | Ukrainian Premier League |
+| 🇵🇹 | Primeira Liga                      |
+| 🇵🇹 | Primeira Liga Qualification        |
+| 🇵🇹 | Liga Portugal 2                    |
+| 🇵🇹 | Liga Portugal 2 Qualification      |
+| 🇷🇺 | Russian Premier League             |
+| 🏴󠁧󠁢󠁳󠁣󠁴󠁿 | Scottish Premiership               |
+| 🇬🇷 | Super League 1                     |
+| 🇩🇰 | Superligaen                        |
+| 🇹🇷 | Süper Lig                          |
+| 🇨🇭 | Swiss Super League                 |
+| 🇺🇦 | Ukrainian Premier League           |
 
 ## European Competitions
 
-| | Competition |
-|---|-------------|
-| 🏆 | UEFA Champions League |
-| 🏆 | UEFA Conference League |
-| 🇪🇺 | UEFA Euro |
-| 🏆 | UEFA Europa League |
-| 🇪🇺 | UEFA Women's Euro |
+| | Competition                   |
+|---|-------------------------------|
+| 🏆 | UEFA Champions League         |
+| 🏆 | UEFA Conference League        |
+| 🇪🇺 | UEFA Euro                     |
+| 🏆 | UEFA Europa League            |
+| 🇪🇺 | UEFA Women's Euro             |
 | 🏆 | Women's UEFA Champions League |
 
 ## Domestic Cups
 
-| | Cup |
-|---|-----|
-| 🇪🇸 | Copa del Rey |
-| 🇮🇹 | Coppa Italia |
-| 🇫🇷 | Coupe de France |
-| 🇩🇪 | DFB Pokal |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | FA Cup |
-| 🇪🇸 | Supercopa de España |
-| 🇩🇪 | Women's DFB Pokal |
+| | Cup                           |
+|---|-------------------------------|
+| 🇪🇸 | Copa del Rey                  |
+| 🇮🇹 | Coppa Italia                  |
+| 🇫🇷 | Coupe de France               |
+| 🇩🇪 | DFB Pokal                     |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 | FA Cup                        |
+| 🇪🇸 | Supercopa de España           |
+| 🇩🇪 | Women's DFB Pokal             |
+| 🇵🇹 | Taça de Portugal              |
+| 🇵🇹 | Taça da Liga                  |
+| 🇵🇹 | Supertaça Cândido de Oliveira |
 
 ## South America
 
-| | League/Competition |
-|---|-------------------|
-| 🇦🇷 | Liga Profesional |
+| | League/Competition  |
+|---|---------------------|
+| 🇦🇷 | Liga Profesional    |
 | 🇧🇷 | Brasileirão Série A |
 | 🇧🇷 | Brasileirão Série B |
-| 🇨🇱 | Primera Division |
-| 🇨🇴 | Copa Colombia |
-| 🇨🇴 | Primera A |
-| 🇨🇴 | Primera B |
-| 🇪🇨 | Serie A |
-| 🇵🇪 | Liga 1 |
-| 🇺🇾 | Primera Division |
-| 🏆 | Copa America |
-| 🏆 | Copa Libertadores |
-| 🏆 | Copa Sudamericana |
+| 🇨🇱 | Primera Division    |
+| 🇨🇴 | Copa Colombia       |
+| 🇨🇴 | Primera A           |
+| 🇨🇴 | Primera B           |
+| 🇪🇨 | Serie A             |
+| 🇵🇪 | Liga 1              |
+| 🇺🇾 | Primera Division    |
+| 🏆 | Copa America        |
+| 🏆 | Copa Libertadores   |
+| 🏆 | Copa Sudamericana   |
 
 ## North America
 
-| | League |
-|---|--------|
-| 🇲🇽 | Liga MX |
-| 🇺🇸 | MLS |
-| 🇺🇸 | NWSL |
+| | League   |
+|---|----------|
+| 🇲🇽 | Liga MX  |
+| 🇺🇸 | MLS      |
+| 🇺🇸 | NWSL     |
 
 ## Middle East
 
-| | League |
-|---|--------|
+| | League           |
+|---|------------------|
 | 🇸🇦 | Saudi Pro League |
 
 ## Asia
 
-| | League |
-|---|--------|
+| | League               |
+|---|----------------------|
 | 🇨🇳 | Chinese Super League |
-| 🇮🇳 | Indian Super League |
-| 🇯🇵 | J. League |
-| 🇰🇷 | K League 1 |
-| 🇶🇦 | Qatar Stars League |
+| 🇮🇳 | Indian Super League  |
+| 🇯🇵 | J. League            |
+| 🇰🇷 | K League 1           |
+| 🇶🇦 | Qatar Stars League   |
 
 ## Oceania
 
-| | League |
-|---|--------|
-| 🇦🇺 | A-League |
+| | League     |
+|---|------------|
+| 🇦🇺 | A-League   |
 
 ## Africa
 
-| | League |
-|---|--------|
-| 🇲🇦 | Botola Pro |
+| | League                  |
+|---|-------------------------|
+| 🇲🇦 | Botola Pro              |
 | 🇪🇬 | Egyptian Premier League |
-| 🇿🇦 | Premier Soccer League |
+| 🇿🇦 | Premier Soccer League   |
 
 ## International
 
-| | Competition |
-|---|-------------|
-| 🌍 | Africa Cup of Nations |
+| | Competition              |
+|---|--------------------------|
+| 🌍 | Africa Cup of Nations    |
 | 🌍 | International Friendlies |
-| ⚽ | Club Friendlies |
-| 🏆 | FIFA Club World Cup |
-| 🌍 | FIFA World Cup |
-| 🏆 | UEFA Nations League |
-| 🌍 | Women's FIFA World Cup |
+| ⚽ | Club Friendlies          |
+| 🏆 | FIFA Club World Cup      |
+| 🌍 | FIFA World Cup           |
+| 🏆 | UEFA Nations League      |
+| 🌍 | Women's FIFA World Cup   |
