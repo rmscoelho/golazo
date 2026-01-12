@@ -852,24 +852,24 @@ func renderLargeScore(homeScore, awayScore int, width int) string {
 
 	for i := 0; i < 3; i++ {
 		// Build home score line
-		var homeLine string
+		var homeLine strings.Builder
 		for j, p := range homePatterns {
 			if j > 0 {
-				homeLine += " " // Space between digits
+				homeLine.WriteString(" ") // Space between digits
 			}
-			homeLine += p[i]
+			homeLine.WriteString(p[i])
 		}
 
 		// Build away score line
-		var awayLine string
+		var awayLine strings.Builder
 		for j, p := range awayPatterns {
 			if j > 0 {
-				awayLine += " " // Space between digits
+				awayLine.WriteString(" ") // Space between digits
 			}
-			awayLine += p[i]
+			awayLine.WriteString(p[i])
 		}
 
-		line := homeLine + "  " + dash[i] + "  " + awayLine
+		line := homeLine.String() + "  " + dash[i] + "  " + awayLine.String()
 		lines = append(lines, scoreStyle.Render(line))
 	}
 

@@ -921,14 +921,14 @@ func formatNumber(n int) string {
 	}
 
 	// Insert commas from right to left
-	result := ""
+	var result strings.Builder
 	for i, c := range s {
 		if i > 0 && (len(s)-i)%3 == 0 {
-			result += ","
+			result.WriteString(",")
 		}
-		result += string(c)
+		result.WriteString(string(c))
 	}
-	return result
+	return result.String()
 }
 
 // truncateToHeight truncates content to fit within maxLines.
