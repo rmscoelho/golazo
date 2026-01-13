@@ -78,6 +78,7 @@ Golazo supports **60+ leagues and competitions**. Customize your selection in Se
 | 🇦🇷 | Liga Profesional |
 | 🇧🇷 | Brasileirão Série A |
 | 🇧🇷 | Brasileirão Série B |
+| 🇧🇷 | Campeonato Gaúcho |
 | 🇨🇱 | Primera Division |
 | 🇨🇴 | Copa Colombia |
 | 🇨🇴 | Primera A |
