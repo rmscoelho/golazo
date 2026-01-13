@@ -85,6 +85,7 @@ var AllSupportedLeagues = map[string][]LeagueInfo{
 		// South America
 		{ID: 268, Name: "Brasileirão Série A", Country: "Brazil"},
 		{ID: 8814, Name: "Brasileirão Série B", Country: "Brazil"},
+		{ID: 10274, Name: "Gaúcho", Country: "Brazil"},
 		{ID: 44, Name: "Copa America", Country: "South America"},
 		{ID: 9490, Name: "Copa Colombia", Country: "Colombia"},
 		{ID: 45, Name: "Copa Libertadores", Country: "South America"},
